@@ -22,7 +22,7 @@ Each entry is a waypoint on your health journey. Minimalism as a feature, not a 
 
 ## Tech Stack
 
-- **Frontend**: React 18 + TypeScript + Vite
+- **Frontend**: React 19 + TypeScript + Vite
 - **Backend**: Supabase (Auth, Database, Real-time)
 - **Styling**: Tailwind CSS + DaisyUI
 - **State**: TanStack Query + minimal Zustand

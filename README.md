@@ -1,69 +1,46 @@
-# React + TypeScript + Vite
+# WeighPoint
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A thoughtfully minimal weight tracking app that celebrates every milestone on your health journey.
 
-Currently, two official plugins are available:
+## About
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+WeighPoint transforms weight tracking from simple logging into meaningful goal achievement. Each entry is a waypoint, each goal is a destination worth celebrating.
 
-## Expanding the ESLint configuration
+**Core Features:**
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- Secure anonymous mode - start tracking immediately
+- Intelligent goal system with automatic completion detection
+- Achievement celebration timeline with permanent milestone tracking
+- Clean, goal-focused interface that prioritizes your progress
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Tech Stack
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+- React 19 + TypeScript + Vite
+- Supabase (Database, Auth, Real-time)
+- Tailwind CSS + DaisyUI
+- TanStack Query + React Hook Form
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
+## Development Status
+
+🚧 **Work in Progress** - Core functionality is implemented and secure, with additional features planned.
+
+See `src/docs/CLAUDE.md` for detailed development documentation.
+
+## Quick Start
+
+```bash
+# Install dependencies
+pnpm install
+
+# Start Supabase (requires Docker)
+npx supabase start
+
+# Start development server
+pnpm dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Philosophy
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x';
-import reactDom from 'eslint-plugin-react-dom';
-
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
-```
+- **Minimalism as Power**: Focus on what matters - your progress
+- **Celebrate Every Victory**: Every goal completion deserves recognition
+- **Progress Over Perfection**: Small consistent steps create lasting change
