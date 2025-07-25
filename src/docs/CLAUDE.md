@@ -2,7 +2,23 @@
 
 ## Project Overview
 
-A thoughtfully minimal React TypeScript PWA for personal weight tracking. Clean, fast, beautifully designed app focused on the essentials - track weight, visualize progress, reach goals. Each entry is a waypoint on your health journey. Minimalism as a feature, not a limitation.
+A thoughtfully minimal AND goal-focused React TypeScript PWA for personal weight tracking. Clean, fast, beautifully designed app that celebrates every milestone on your health journey. Each entry is a waypoint, each goal is a destination worth celebrating.
+
+**Core Philosophy:**
+
+- **Minimalism as Power**: Strip away distractions to focus on what matters - your progress
+- **Goal-Centric Design**: Every feature serves the purpose of helping you set, track, and achieve meaningful goals
+- **Celebrate Every Victory**: Whether you lose 2 pounds or 20, every goal completion deserves recognition and celebration
+- **Progress Over Perfection**: Small consistent steps create lasting change
+- **Permanent Achievement Tracking**: Once achieved, goals remain completed forever - weight fluctuations don't erase success
+
+**Why Goal Celebration Matters:**
+Weight loss and fitness journeys are deeply personal and often challenging. WeighPoint believes that every goal - no matter how "small" - represents dedication, discipline, and personal growth. A 5-pound goal achieved is just as worthy of celebration as a 50-pound goal. The app automatically detects goal completion and permanently records achievements, letting you savor success and build a timeline of victories before moving to the next challenge.
+
+**Automatic Goal Completion:**
+Unlike traditional tracking apps where achievements feel temporary, WeighPoint automatically completes goals the moment your weight entry reaches the target. This creates permanent milestones tied to specific entries, ensuring your success is always recognized and celebrated.
+
+Each entry is a waypoint on your health journey. Minimalism as a feature, not a limitation.
 
 ## Tech Stack
 
@@ -12,6 +28,7 @@ A thoughtfully minimal React TypeScript PWA for personal weight tracking. Clean,
 - **State**: TanStack Query + minimal Zustand
 - **Charts**: Recharts (lightweight, good performance)
 - **Forms**: React Hook Form + Zod
+- **Routing**: React Router (Dashboard, Goal History)
 - **PWA**: Vite PWA Plugin
 
 ## Project Structure
@@ -42,7 +59,7 @@ src/
     └── index.ts             # Core types
 ```
 
-## Database Schema (Minimal)
+## Database Schema (Current Implementation)
 
 ```sql
 -- User profiles (supports both auth and anon users)
@@ -57,51 +74,32 @@ CREATE TABLE profiles (
 -- Weight entries
 CREATE TABLE entries (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
   weight DECIMAL(6,2) NOT NULL,
   recorded_at TIMESTAMPTZ NOT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Single goal per user
+-- Goals with completion tracking and celebration focus
 CREATE TABLE goals (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
   start_weight DECIMAL(6,2) NOT NULL,
   target_weight DECIMAL(6,2) NOT NULL,
   target_date DATE,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  -- Constraint: one active goal per user
-  UNIQUE(user_id)
+  status TEXT DEFAULT 'active' CHECK (status IN ('active', 'completed')),
+  completed_at TIMESTAMPTZ NULL,
+  completed_entry_id UUID REFERENCES entries(id) NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Simple RLS
-ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE entries ENABLE ROW LEVEL SECURITY;
-ALTER TABLE goals ENABLE ROW LEVEL SECURITY;
+-- Indexes for performance and constraints
+CREATE INDEX idx_entries_user_id_recorded_at ON entries(user_id, recorded_at DESC);
+CREATE INDEX idx_goals_completed ON goals(user_id, completed_at DESC) WHERE status = 'completed';
+CREATE UNIQUE INDEX idx_goals_user_active ON goals(user_id) WHERE status = 'active';
 
-CREATE POLICY "Users can access own data" ON profiles FOR ALL USING (
-  (auth.uid() IS NOT NULL AND auth.uid() = id) OR
-  (auth.uid() IS NULL AND is_anonymous = true)
-);
-
-CREATE POLICY "Users can access own entries" ON entries FOR ALL USING (
-  EXISTS (
-    SELECT 1 FROM profiles
-    WHERE profiles.id = entries.user_id
-    AND ((auth.uid() IS NOT NULL AND auth.uid() = profiles.id) OR
-         (auth.uid() IS NULL AND profiles.is_anonymous = true))
-  )
-);
-
-CREATE POLICY "Users can access own goals" ON goals FOR ALL USING (
-  EXISTS (
-    SELECT 1 FROM profiles
-    WHERE profiles.id = goals.user_id
-    AND ((auth.uid() IS NOT NULL AND auth.uid() = profiles.id) OR
-         (auth.uid() IS NULL AND profiles.is_anonymous = true))
-  )
-);
+-- Note: RLS is currently disabled for development
+-- In production, implement proper RLS policies for data security
 ```
 
 ## Core Data Models
@@ -121,6 +119,9 @@ export interface Goal {
   start_weight: number;
   target_weight: number;
   target_date?: string;
+  status: 'active' | 'completed';
+  completed_at?: string;
+  completed_entry_id?: string;
   created_at: string;
 }
 
@@ -181,20 +182,42 @@ export const api = {
 
   deleteEntry: (id: string) => supabase.from('entries').delete().eq('id', id),
 
-  // Goal management
-  getGoal: () => supabase.from('goals').select('*').maybeSingle(),
+  // Goal management with celebration focus
+  getActiveGoal: () =>
+    supabase.from('goals').select('*').eq('status', 'active').maybeSingle(),
+
+  getCompletedGoals: () =>
+    supabase
+      .from('goals')
+      .select('*, entries(*)')
+      .eq('status', 'completed')
+      .order('completed_at', { ascending: false }),
 
   setGoal: (goal: { target_weight: number; target_date?: string }) =>
     supabase
       .from('goals')
-      .upsert({
+      .insert({
         ...goal,
         start_weight: 0, // Will be set by the app logic
+        status: 'active',
       })
       .select()
       .single(),
 
-  clearGoal: () => supabase.from('goals').delete(),
+  completeGoal: (goalId: string, entryId: string) =>
+    supabase
+      .from('goals')
+      .update({
+        status: 'completed',
+        completed_at: new Date().toISOString(),
+        completed_entry_id: entryId,
+      })
+      .eq('id', goalId)
+      .select()
+      .single(),
+
+  clearGoal: (goalId: string) =>
+    supabase.from('goals').delete().eq('id', goalId),
 
   // Profile
   getProfile: () => supabase.from('profiles').select('*').single(),
@@ -337,16 +360,40 @@ export const EntryForm = ({
 };
 ```
 
-## Key Features (Thoughtfully Minimal)
+## Key Features (Thoughtfully Minimal & Goal-Focused)
 
 - **Instant Start**: Opens to anonymous mode, start tracking waypoints immediately
 - **Smart Entry**: Quick weight logging with intelligent defaults (current time/date)
 - **Journey Visualization**: Clean line chart showing your weight waypoints over time
-- **Destination Setting**: Simple target setting with visual progress to your goal
+- **Automatic Goal Completion**: Goals complete instantly when weight entries reach targets
+- **Goal Celebration System**: Permanent achievement tracking that celebrates every milestone
+- **Achievement First UI**: Completed goals are prominently displayed with celebration details
+- **Achievement Timeline**: Visual timeline of all completed goals with journey statistics
+- **Goal History Navigation**: Dedicated page for viewing achievement history and stats
+- **Smart Navigation**: Contextual links between dashboard and goal history
 - **Seamless Sync**: Optional account creation preserves all waypoint data across devices
 - **Thoughtful UX**: Dark/light themes, haptic feedback, smooth animations
 - **Offline First**: Works completely offline, syncs when connected
 - **Export Ready**: CSV export for data portability
+
+### Goal Celebration System
+
+WeighPoint transforms goal achievement from a fleeting moment into a lasting celebration:
+
+**Permanent Milestones**: Once achieved, goals remain completed forever - weight fluctuations don't erase your success.
+
+**Achievement-First Display**: Completed goals take visual priority over creating new ones, letting you savor your accomplishment.
+
+**Rich Celebration Details**:
+
+- Exact date and entry that achieved the goal
+- Journey duration ("Completed in 45 days")
+- Total progress made
+- Achievement status ("Goal exceeded!" vs "Goal reached!")
+
+**Progressive Goal Setting**: After celebrating, users can seamlessly set new goals directly from completed goal cards, building a history of achievements rather than endless cycles.
+
+**Achievement Timeline**: The dedicated Goal History page provides a visual timeline of all completed goals, showing journey duration, weight changes, and celebration badges for exceeded targets.
 
 ## User Experience Flow
 
@@ -361,10 +408,13 @@ export const EntryForm = ({
 5. Login on phone → Same journey appears
 6. Continues seamless experience
 
-// Advanced: Goal setting
+// Goal setting and completion
 7. Set destination weight → Progress indicators appear
-8. Hit waypoint milestones → Celebration animations
-9. Reach destination → Achievement unlocked
+8. Add weight entries → System monitors for goal achievement
+9. Hit target weight → Goal automatically completes with celebration
+10. View achievement → Permanent celebration card with journey stats
+11. Set new goal → Continue building achievement timeline
+12. Access goal history → Visual timeline of all completed goals
 ```
 
 ## Pages/Routes (Focused & Polished)
@@ -374,12 +424,13 @@ const routes = [
   {
     path: '/',
     component: Dashboard,
-    // Weight chart + quick add + recent waypoints + goal progress
+    // Weight chart + quick add + goal celebration + recent waypoints + navigation
     features: [
       'Journey chart',
       'Quick waypoint entry',
-      'Goal progress',
+      'Goal celebration system',
       'Recent 5 waypoints',
+      'Achievement count link to history',
     ],
   },
   {
@@ -394,15 +445,28 @@ const routes = [
     ],
   },
   {
+    path: '/goals',
+    component: GoalHistory,
+    // Achievement celebration and goal history
+    features: [
+      'Achievement timeline with visual indicators',
+      'Goal completion statistics',
+      'Journey duration and weight change stats',
+      'Exceeded vs exact completion badges',
+      'Motivational achievement celebration',
+      'Empty state for new users',
+    ],
+  },
+  {
     path: '/settings',
     component: Settings,
-    // Goal management + preferences + account
+    // Preferences + account management
     features: [
-      'Destination setting',
       'Units & timezone',
-      'Theme',
+      'Theme preferences',
       'Account linking',
       'Data export',
+      'Privacy settings',
     ],
   },
 ];
@@ -418,13 +482,15 @@ const routes = [
 
 ## Development Workflow
 
-1. **Auth**: Supabase Auth (email/magic link only)
-2. **Real-time**: Single subscription per table
-3. **Styling**: DaisyUI components + custom Tailwind
-4. **Forms**: React Hook Form with simple validation
-5. **Charts**: Basic line chart with Recharts
-6. **Testing**: Vitest for utils, minimal component tests
-7. **Deploy**: Vercel static deployment
+1. **Package Manager**: pnpm for fast, efficient dependency management
+2. **Auth**: Supabase Auth (email/magic link only) with anonymous support
+3. **Real-time**: Single subscription per table with automatic goal completion
+4. **Routing**: React Router for Dashboard and Goal History navigation
+5. **Styling**: DaisyUI components + custom Tailwind
+6. **Forms**: React Hook Form with Zod validation
+7. **Charts**: Basic line chart with Recharts
+8. **Testing**: Vitest for utils, minimal component tests
+9. **Deploy**: Cloudflare Workers static deployment
 
 ## Why This Approach Works
 

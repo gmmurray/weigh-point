@@ -1,13 +1,18 @@
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { QueryProvider } from './providers/QueryProvider';
+import { Dashboard } from './pages/Dashboard';
+import { GoalHistory } from './pages/GoalHistory';
+
 function App() {
   return (
-    <div className="min-h-screen bg-base-100">
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-4xl font-bold text-center mb-8">WeighPoint</h1>
-        <p className="text-center text-base-content/70">
-          Your weight tracking journey starts here
-        </p>
-      </div>
-    </div>
+    <QueryProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/goals" element={<GoalHistory />} />
+        </Routes>
+      </BrowserRouter>
+    </QueryProvider>
   );
 }
 
