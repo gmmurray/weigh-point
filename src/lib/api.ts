@@ -2,7 +2,6 @@ import type {
   CreateEntryInput,
   CreateGoalInput,
   UpdateProfileInput,
-  GoalWithEntry,
 } from '../types';
 
 import { supabase } from './supabase';
@@ -35,45 +34,47 @@ export const api = {
   },
 
   // Entries with smart defaults
-  getEntries: (limit?: number) =>
+  getEntries: (userId: string, limit?: number) =>
     supabase
       .from('entries')
       .select('*')
+      .eq('user_id', userId)
       .order('recorded_at', { ascending: false })
       .limit(limit || 100),
 
-  createEntry: async (entry: CreateEntryInput) => {
-    // Get current user profile to determine user_id
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('id')
-      .single();
-    if (!profile) throw new Error('No user profile found');
-
-    return supabase
+  createEntry: (userId: string, entry: CreateEntryInput) =>
+    supabase
       .from('entries')
       .insert({
         ...entry,
-        user_id: profile.id,
+        user_id: userId,
         recorded_at: entry.recorded_at || new Date().toISOString(),
       })
       .select()
-      .single();
-  },
+      .single(),
 
-  updateEntry: (id: string, weight: number) =>
-    supabase.from('entries').update({ weight }).eq('id', id).select().single(),
+  updateEntry: (userId: string, id: string, weight: number) =>
+    supabase
+      .from('entries')
+      .update({ weight })
+      .eq('id', id)
+      .eq('user_id', userId)
+      .select()
+      .single(),
 
-  deleteEntry: (id: string) => supabase.from('entries').delete().eq('id', id),
+  deleteEntry: (userId: string, id: string) =>
+    supabase.from('entries').delete().eq('id', id).eq('user_id', userId),
 
   // Goal management with celebration focus
-  getActiveGoal: () =>
-    supabase.from('goals').select('*').eq('status', 'active').maybeSingle(),
+  getActiveGoal: (userId: string) =>
+    supabase
+      .from('goals')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('status', 'active')
+      .maybeSingle(),
 
-  getCompletedGoals: (): Promise<{
-    data: GoalWithEntry[] | null;
-    error: Error | null;
-  }> =>
+  getCompletedGoals: (userId: string) =>
     supabase
       .from('goals')
       .select(
@@ -82,23 +83,33 @@ export const api = {
         entries!goals_completed_entry_id_fkey(*)
       `,
       )
+      .eq('user_id', userId)
       .eq('status', 'completed')
       .order('completed_at', { ascending: false }),
 
-  setGoal: async (goal: CreateGoalInput) => {
+  setGoal: async (userId: string, goal: CreateGoalInput) => {
     // Get the user's latest entry for start_weight
     const { data: entries } = await supabase
       .from('entries')
       .select('weight')
+      .eq('user_id', userId)
       .order('recorded_at', { ascending: false })
       .limit(1);
 
-    const startWeight = entries?.[0]?.weight || 0;
+    // Require at least one entry to set a goal
+    if (!entries || entries.length === 0) {
+      throw new Error(
+        'You must add at least one weight entry before setting a goal',
+      );
+    }
+
+    const startWeight = entries[0].weight;
 
     return supabase
       .from('goals')
       .insert({
         ...goal,
+        user_id: userId,
         start_weight: startWeight,
         status: 'active',
       })
@@ -106,24 +117,36 @@ export const api = {
       .single();
   },
 
-  completeGoal: (goalId: string, entryId: string) =>
+  completeGoal: (
+    userId: string,
+    goalId: string,
+    entryId: string,
+    completedAt: string,
+  ) =>
     supabase
       .from('goals')
       .update({
         status: 'completed',
-        completed_at: new Date().toISOString(),
+        completed_at: completedAt,
         completed_entry_id: entryId,
       })
       .eq('id', goalId)
+      .eq('user_id', userId)
       .select()
       .single(),
 
-  clearGoal: (goalId: string) =>
-    supabase.from('goals').delete().eq('id', goalId),
+  clearGoal: (userId: string, goalId: string) =>
+    supabase.from('goals').delete().eq('id', goalId).eq('user_id', userId),
 
   // Profile
-  getProfile: () => supabase.from('profiles').select('*').single(),
+  getProfile: (userId: string) =>
+    supabase.from('profiles').select('*').eq('id', userId).single(),
 
-  updateProfile: (updates: UpdateProfileInput) =>
-    supabase.from('profiles').update(updates).select().single(),
+  updateProfile: (userId: string, updates: UpdateProfileInput) =>
+    supabase
+      .from('profiles')
+      .update(updates)
+      .eq('id', userId)
+      .select()
+      .single(),
 };

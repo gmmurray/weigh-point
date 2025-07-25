@@ -50,6 +50,7 @@ export const GoalCard = () => {
       reset();
     } catch (error) {
       console.error('Failed to set goal:', error);
+      // The error will be displayed in the UI via the mutation error state
     }
   };
 
@@ -79,7 +80,21 @@ export const GoalCard = () => {
   };
 
   const formatDate = (dateString: string) => {
+    // For date-only strings (YYYY-MM-DD), treat as local date to avoid timezone offset
+    if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      const [year, month, day] = dateString.split('-').map(Number);
+      const localDate = new Date(year, month - 1, day); // month is 0-indexed
+      return format(localDate, 'MMM d, yyyy');
+    }
     return format(new Date(dateString), 'MMM d, yyyy');
+  };
+
+  const getTodayDate = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   };
 
   if (goalLoading) {
@@ -107,11 +122,41 @@ export const GoalCard = () => {
       <>
         <Card>
           <CardTitle>Set Your Goal</CardTitle>
-          <p className="text-base-content/70 mb-4">
-            Define your target weight to track your progress and stay motivated.
-          </p>
+          {!currentWeight ? (
+            <div className="alert alert-info mb-4">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                className="stroke-current shrink-0 w-6 h-6"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                ></path>
+              </svg>
+              <div>
+                <h3 className="font-bold">Add an entry first</h3>
+                <div className="text-xs">
+                  You need at least one weight entry before setting a goal.
+                </div>
+              </div>
+            </div>
+          ) : (
+            <p className="text-base-content/70 mb-4">
+              Define your target weight to track your progress and stay
+              motivated.
+            </p>
+          )}
           <CardActions>
-            <Button onClick={() => setShowGoalModal(true)}>Set Goal</Button>
+            <Button
+              onClick={() => setShowGoalModal(true)}
+              disabled={!currentWeight}
+            >
+              Set Goal
+            </Button>
           </CardActions>
         </Card>
 
@@ -121,6 +166,24 @@ export const GoalCard = () => {
           title="Set Weight Goal"
         >
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            {setGoal.error && (
+              <div className="alert alert-error">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="stroke-current shrink-0 h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <span>{setGoal.error.message}</span>
+              </div>
+            )}
             <Input
               {...register('target_weight', { valueAsNumber: true })}
               type="number"
@@ -134,6 +197,7 @@ export const GoalCard = () => {
               {...register('target_date')}
               type="date"
               label="Target Date (Optional)"
+              min={getTodayDate()}
               error={errors.target_date?.message}
             />
 

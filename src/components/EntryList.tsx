@@ -62,7 +62,7 @@ export const EntryList = ({ limit = 5 }: EntryListProps) => {
       <Card>
         <CardTitle>Recent Entries</CardTitle>
         <div className="space-y-2">
-          {entries.map(entry => (
+          {entries.map((entry: Entry) => (
             <div
               key={entry.id}
               className="flex items-center justify-between p-3 bg-base-200 rounded-lg"

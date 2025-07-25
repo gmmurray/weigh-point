@@ -9,6 +9,12 @@ export const useGoalCompletion = () => {
   const completeGoal = useCompleteGoal();
 
   const checkGoalCompletion = (entry: Entry, goal: Goal) => {
+    // Safety check: ensure valid goal data
+    if (!goal.start_weight || goal.start_weight <= 0) {
+      console.warn('Invalid goal start weight, cannot check completion');
+      return;
+    }
+
     const isLossGoal = goal.start_weight > goal.target_weight;
     const isGoalAchieved = isLossGoal
       ? entry.weight <= goal.target_weight
@@ -18,6 +24,7 @@ export const useGoalCompletion = () => {
       completeGoal.mutate({
         goalId: goal.id,
         entryId: entry.id,
+        completedAt: entry.recorded_at,
       });
     }
   };

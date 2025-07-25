@@ -21,14 +21,37 @@ export const useAuth = () => {
   const { data: profile, error: profileError } = useQuery({
     queryKey: ['profile'],
     queryFn: async () => {
-      // Try to get existing profile first
-      const { data: existingProfile, error } = await api.getProfile();
+      // Check if we have a stored anonymous profile ID
+      const storedAnonId = localStorage.getItem('weigh-point-anon-id');
 
-      if (existingProfile) {
-        return existingProfile;
+      // If authenticated, get auth user profile
+      if (session?.user) {
+        try {
+          const { data: existingProfile } = await api.getProfile(
+            session.user.id,
+          );
+          if (existingProfile) {
+            return existingProfile;
+          }
+        } catch {
+          // Profile doesn't exist, will create below
+        }
       }
 
-      // If no profile exists and we're not authenticated, create anonymous profile
+      // If we have stored anon ID, try to get that profile
+      if (storedAnonId && !session) {
+        try {
+          const { data: existingProfile } = await api.getProfile(storedAnonId);
+          if (existingProfile && existingProfile.is_anonymous) {
+            return existingProfile;
+          }
+        } catch {
+          // Profile doesn't exist or isn't accessible
+          localStorage.removeItem('weigh-point-anon-id');
+        }
+      }
+
+      // Create new anonymous profile if no session
       if (!session) {
         const { data: newProfile, error: createError } =
           await api.createAnonProfile();
@@ -39,7 +62,7 @@ export const useAuth = () => {
         return newProfile;
       }
 
-      throw error;
+      throw new Error('Unable to get or create profile');
     },
     retry: false,
   });

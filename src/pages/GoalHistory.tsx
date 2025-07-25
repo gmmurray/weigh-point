@@ -21,7 +21,11 @@ const GoalTimelineItem = ({ goal, unit }: GoalTimelineItemProps) => {
 
   const startDate = new Date(goal.created_at);
   const completedDate = new Date(goal.completed_at!);
-  const daysToComplete = differenceInDays(completedDate, startDate);
+  // Add 1 to include both start and end days in the count
+  const daysToComplete = Math.max(
+    1,
+    differenceInDays(completedDate, startDate) + 1,
+  );
 
   return (
     <div className="flex gap-4 pb-6 last:pb-0 border-b last:border-b-0 border-base-300">
@@ -90,7 +94,8 @@ const AchievementStats = ({
     completedGoals.reduce((sum, goal) => {
       const start = new Date(goal.created_at);
       const end = new Date(goal.completed_at!);
-      return sum + differenceInDays(end, start);
+      // Add 1 to include both start and end days in the count
+      return sum + Math.max(1, differenceInDays(end, start) + 1);
     }, 0) / totalGoals,
   );
 

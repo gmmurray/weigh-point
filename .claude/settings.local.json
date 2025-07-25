@@ -1,6 +1,6 @@
 {
   "permissions": {
-    "allow": ["Bash(npx supabase:*)"],
+    "allow": ["Bash(npx supabase:*)", "Bash(npm run build:*)"],
     "deny": []
   }
 }

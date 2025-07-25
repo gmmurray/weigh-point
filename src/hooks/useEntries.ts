@@ -35,26 +35,39 @@ export const useEntries = (limit?: number) => {
   }, [profile, profile.id, queryClient]);
 
   return useQuery({
-    queryKey: ['entries', limit],
-    queryFn: () => api.getEntries(limit),
-    enabled: !!profile,
-    select: data => data.data || [],
+    queryKey: ['entries', profile?.id, limit],
+    queryFn: async () => {
+      if (!profile?.id) return [];
+      const result = await api.getEntries(profile.id, limit);
+      return result.data || [];
+    },
+    enabled: !!profile?.id,
   });
 };
 
 export const useCreateEntry = () => {
   const queryClient = useQueryClient();
+  const { profile } = useAuth();
   const { data: activeGoal } = useActiveGoal();
   const completeGoal = useCompleteGoal();
 
   return useMutation({
-    mutationFn: (entry: CreateEntryInput) => api.createEntry(entry),
-    onSuccess: result => {
+    mutationFn: async (entry: CreateEntryInput) => {
+      if (!profile?.id) throw new Error('No user profile');
+      const result = await api.createEntry(profile.id, entry);
+      return result.data;
+    },
+    onSuccess: newEntry => {
       queryClient.invalidateQueries({ queryKey: ['entries'] });
 
       // Check if this entry completes the active goal
-      if (activeGoal && result.data) {
-        const newEntry = result.data;
+      if (activeGoal && newEntry) {
+        // Safety check: ensure valid start weight
+        if (activeGoal.start_weight <= 0) {
+          console.warn('Invalid goal start weight, skipping completion check');
+          return;
+        }
+
         const isLossGoal = activeGoal.start_weight > activeGoal.target_weight;
         const isGoalAchieved = isLossGoal
           ? newEntry.weight <= activeGoal.target_weight
@@ -64,6 +77,7 @@ export const useCreateEntry = () => {
           completeGoal.mutate({
             goalId: activeGoal.id,
             entryId: newEntry.id,
+            completedAt: newEntry.recorded_at,
           });
         }
       }
@@ -73,10 +87,14 @@ export const useCreateEntry = () => {
 
 export const useUpdateEntry = () => {
   const queryClient = useQueryClient();
+  const { profile } = useAuth();
 
   return useMutation({
-    mutationFn: ({ id, weight }: { id: string; weight: number }) =>
-      api.updateEntry(id, weight),
+    mutationFn: async ({ id, weight }: { id: string; weight: number }) => {
+      if (!profile?.id) throw new Error('No user profile');
+      const result = await api.updateEntry(profile.id, id, weight);
+      return result.data;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['entries'] });
     },
@@ -85,9 +103,14 @@ export const useUpdateEntry = () => {
 
 export const useDeleteEntry = () => {
   const queryClient = useQueryClient();
+  const { profile } = useAuth();
 
   return useMutation({
-    mutationFn: (id: string) => api.deleteEntry(id),
+    mutationFn: async (id: string) => {
+      if (!profile?.id) throw new Error('No user profile');
+      const result = await api.deleteEntry(profile.id, id);
+      return result.data;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['entries'] });
     },

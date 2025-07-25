@@ -35,10 +35,13 @@ export const useActiveGoal = () => {
   }, [profile, profile.id, queryClient]);
 
   return useQuery({
-    queryKey: ['activeGoal'],
-    queryFn: () => api.getActiveGoal(),
-    enabled: !!profile,
-    select: data => data.data,
+    queryKey: ['activeGoal', profile?.id],
+    queryFn: async () => {
+      if (!profile?.id) return null;
+      const result = await api.getActiveGoal(profile.id);
+      return result.data;
+    },
+    enabled: !!profile?.id,
   });
 };
 
@@ -46,18 +49,26 @@ export const useCompletedGoals = () => {
   const { profile } = useAuth();
 
   return useQuery({
-    queryKey: ['completedGoals'],
-    queryFn: () => api.getCompletedGoals(),
-    enabled: !!profile,
-    select: data => data.data || [],
+    queryKey: ['completedGoals', profile?.id],
+    queryFn: async () => {
+      if (!profile?.id) return [];
+      const result = await api.getCompletedGoals(profile.id);
+      return result.data || [];
+    },
+    enabled: !!profile?.id,
   });
 };
 
 export const useSetGoal = () => {
   const queryClient = useQueryClient();
+  const { profile } = useAuth();
 
   return useMutation({
-    mutationFn: (goal: CreateGoalInput) => api.setGoal(goal),
+    mutationFn: async (goal: CreateGoalInput) => {
+      if (!profile?.id) throw new Error('No user profile');
+      const result = await api.setGoal(profile.id, goal);
+      return result.data;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['activeGoal'] });
     },
@@ -66,10 +77,27 @@ export const useSetGoal = () => {
 
 export const useCompleteGoal = () => {
   const queryClient = useQueryClient();
+  const { profile } = useAuth();
 
   return useMutation({
-    mutationFn: ({ goalId, entryId }: { goalId: string; entryId: string }) =>
-      api.completeGoal(goalId, entryId),
+    mutationFn: async ({
+      goalId,
+      entryId,
+      completedAt,
+    }: {
+      goalId: string;
+      entryId: string;
+      completedAt: string;
+    }) => {
+      if (!profile?.id) throw new Error('No user profile');
+      const result = await api.completeGoal(
+        profile.id,
+        goalId,
+        entryId,
+        completedAt,
+      );
+      return result.data;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['activeGoal'] });
       queryClient.invalidateQueries({ queryKey: ['completedGoals'] });
@@ -79,9 +107,14 @@ export const useCompleteGoal = () => {
 
 export const useClearGoal = () => {
   const queryClient = useQueryClient();
+  const { profile } = useAuth();
 
   return useMutation({
-    mutationFn: (goalId: string) => api.clearGoal(goalId),
+    mutationFn: async (goalId: string) => {
+      if (!profile?.id) throw new Error('No user profile');
+      const result = await api.clearGoal(profile.id, goalId);
+      return result.data;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['activeGoal'] });
       queryClient.invalidateQueries({ queryKey: ['completedGoals'] });

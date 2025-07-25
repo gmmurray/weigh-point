@@ -35,13 +35,31 @@ export const CompletedGoalCard = ({
     ? actualWeight < goal.target_weight
     : actualWeight > goal.target_weight;
 
-  // Calculate duration
+  // Calculate duration with proper date handling
   const startDate = new Date(goal.created_at);
   const completedDate = new Date(goal.completed_at!);
-  const daysToComplete = differenceInDays(completedDate, startDate);
+  // Add 1 to include both start and end days in the count
+  const daysToComplete = Math.max(
+    1,
+    differenceInDays(completedDate, startDate) + 1,
+  );
 
   const formatDate = (dateString: string) => {
+    // For date-only strings (YYYY-MM-DD), treat as local date to avoid timezone offset
+    if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      const [year, month, day] = dateString.split('-').map(Number);
+      const localDate = new Date(year, month - 1, day); // month is 0-indexed
+      return format(localDate, 'MMM d, yyyy');
+    }
     return format(new Date(dateString), 'MMM d, yyyy');
+  };
+
+  const getTodayDate = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   };
 
   const {
@@ -165,6 +183,7 @@ export const CompletedGoalCard = ({
             {...register('target_date')}
             type="date"
             label="Target Date (Optional)"
+            min={getTodayDate()}
             error={errors.target_date?.message}
           />
 

@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -8,7 +8,7 @@ const queryClient = new QueryClient({
       gcTime: 1000 * 60 * 10, // 10 minutes
       retry: (failureCount, error: Error & { status?: number }) => {
         // Don't retry on 4xx errors
-        if (error?.status >= 400 && error?.status < 500) {
+        if (error?.status && error.status >= 400 && error.status < 500) {
           return false;
         }
         return failureCount < 3;
