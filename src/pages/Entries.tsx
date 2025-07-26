@@ -1,7 +1,7 @@
 import { AppHeader } from '../components/AppHeader';
 import { EntryList } from '../components/EntryList';
 
-export const Entries = () => {
+const Entries = () => {
   return (
     <div className="min-h-screen bg-base-100">
       <AppHeader showAddEntry />
@@ -18,3 +18,6 @@ export const Entries = () => {
     </div>
   );
 };
+
+export default Entries;
+export { Entries }; // Keep named export for compatibility

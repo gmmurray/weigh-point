@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { AuthForm } from '../components/AuthForm';
 import { useAuth } from '../hooks/useAuth';
 
-export const SignUp = () => {
+const SignUp = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { isAuthenticated, isLoading } = useAuth();
@@ -29,3 +29,6 @@ export const SignUp = () => {
 
   return <AuthForm mode="signup" redirectTo={redirectTo} />;
 };
+
+export default SignUp;
+export { SignUp }; // Keep named export for compatibility

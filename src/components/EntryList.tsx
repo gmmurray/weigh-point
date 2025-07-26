@@ -3,7 +3,7 @@ import { useDeleteEntry, useEntries } from '../hooks/useEntries';
 
 import type { Entry } from '../types';
 import { Link } from 'react-router-dom';
-import { format } from 'date-fns';
+import { formatDate as formatDateUtil } from '../lib/dateUtils';
 import { useAuth } from '../hooks/useAuth';
 import { useState } from 'react';
 
@@ -29,7 +29,7 @@ export const EntryList = ({
   };
 
   const formatDate = (dateString: string) => {
-    return format(new Date(dateString), 'MMM d, yyyy h:mm a');
+    return formatDateUtil.dateTime(dateString);
   };
 
   const handleDelete = async (entry: Entry) => {

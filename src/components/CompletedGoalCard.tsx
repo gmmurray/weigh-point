@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { format, differenceInDays } from 'date-fns';
+import {
+  formatDate as formatDateUtil,
+  getDaysDifference,
+} from '../lib/dateUtils';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button, Card, CardTitle, CardActions, Modal, Input } from './ui';
@@ -41,7 +44,7 @@ export const CompletedGoalCard = ({
   // Add 1 to include both start and end days in the count
   const daysToComplete = Math.max(
     1,
-    differenceInDays(completedDate, startDate) + 1,
+    getDaysDifference(startDate, completedDate) + 1,
   );
 
   const formatDate = (dateString: string) => {
@@ -49,17 +52,13 @@ export const CompletedGoalCard = ({
     if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
       const [year, month, day] = dateString.split('-').map(Number);
       const localDate = new Date(year, month - 1, day); // month is 0-indexed
-      return format(localDate, 'MMM d, yyyy');
+      return formatDateUtil.mediumDate(localDate);
     }
-    return format(new Date(dateString), 'MMM d, yyyy');
+    return formatDateUtil.mediumDate(dateString);
   };
 
   const getTodayDate = () => {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    return formatDateUtil.inputDate(new Date());
   };
 
   const {
@@ -70,9 +69,8 @@ export const CompletedGoalCard = ({
   } = useForm<GoalFormData>({
     resolver: zodResolver(goalSchema),
     defaultValues: {
-      target_date: format(
+      target_date: formatDateUtil.inputDate(
         new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days from now
-        'yyyy-MM-dd',
       ),
     },
   });

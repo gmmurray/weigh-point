@@ -7,7 +7,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { format } from 'date-fns';
+import { formatDate } from '../lib/dateUtils';
 import { Card, CardTitle } from './ui';
 import { useEntries } from '../hooks/useEntries';
 import { useAuth } from '../hooks/useAuth';
@@ -58,7 +58,7 @@ export const WeightChart = () => {
     .map((entry: Entry) => ({
       date: entry.recorded_at,
       weight: entry.weight,
-      formatted_date: format(new Date(entry.recorded_at), 'MMM d'),
+      formatted_date: formatDate.shortDate(entry.recorded_at),
     }));
 
   // Custom tooltip component
@@ -76,9 +76,7 @@ export const WeightChart = () => {
 
       return (
         <div className="bg-base-100 border border-base-300 rounded-lg p-3 shadow-lg">
-          <p className="font-semibold">
-            {format(new Date(data.date), 'MMM d, yyyy h:mm a')}
-          </p>
+          <p className="font-semibold">{formatDate.dateTime(data.date)}</p>
           <p className="text-primary">
             Weight: {data.weight} {unit}
           </p>

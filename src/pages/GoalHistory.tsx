@@ -1,5 +1,5 @@
 import { Card, CardTitle } from '../components/ui';
-import { differenceInDays, format } from 'date-fns';
+import { formatDate, getDaysDifference } from '../lib/dateUtils';
 
 import { AppHeader } from '../components/AppHeader';
 import { GoalCard } from '../components/GoalCard';
@@ -27,7 +27,7 @@ const GoalTimelineItem = ({ goal, unit }: GoalTimelineItemProps) => {
   // Add 1 to include both start and end days in the count
   const daysToComplete = Math.max(
     1,
-    differenceInDays(completedDate, startDate) + 1,
+    getDaysDifference(startDate, completedDate) + 1,
   );
 
   return (
@@ -47,7 +47,7 @@ const GoalTimelineItem = ({ goal, unit }: GoalTimelineItemProps) => {
               Goal Achieved
             </div>
             <div className="text-sm text-base-content/70">
-              {format(completedDate, 'MMM d, yyyy')} • {daysToComplete} days
+              {formatDate.mediumDate(completedDate)} • {daysToComplete} days
             </div>
           </div>
           <div className="text-right text-sm">
@@ -98,7 +98,7 @@ const AchievementStats = ({
       const start = new Date(goal.created_at);
       const end = new Date(goal.completed_at!);
       // Add 1 to include both start and end days in the count
-      return sum + Math.max(1, differenceInDays(end, start) + 1);
+      return sum + Math.max(1, getDaysDifference(start, end) + 1);
     }, 0) / totalGoals,
   );
 
@@ -124,7 +124,7 @@ const AchievementStats = ({
   );
 };
 
-export const GoalHistory = () => {
+const GoalHistory = () => {
   const { profile, isLoading } = useAuth();
   const { data: completedGoals = [], isLoading: goalsLoading } =
     useCompletedGoals();
@@ -213,3 +213,6 @@ export const GoalHistory = () => {
     </div>
   );
 };
+
+export default GoalHistory;
+export { GoalHistory }; // Keep named export for compatibility
