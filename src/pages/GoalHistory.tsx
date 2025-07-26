@@ -2,6 +2,7 @@ import { format, differenceInDays } from 'date-fns';
 import { Card, CardTitle, Button } from '../components/ui';
 import { useCompletedGoals } from '../hooks/useGoal';
 import { useAuth } from '../hooks/useAuth';
+import { AppHeader } from '../components/AppHeader';
 import type { GoalWithEntry } from '../types';
 
 interface GoalTimelineItemProps {
@@ -130,7 +131,9 @@ export const GoalHistory = () => {
   if (isLoading || goalsLoading) {
     return (
       <div className="min-h-screen bg-base-100">
-        <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <AppHeader title="Goal History" showAddEntry showBackButton />
+
+        <div className="container mx-auto px-4 max-w-4xl">
           <div className="skeleton h-8 w-48 mb-6" />
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
@@ -145,9 +148,9 @@ export const GoalHistory = () => {
   if (!completedGoals?.length) {
     return (
       <div className="min-h-screen bg-base-100">
-        <div className="container mx-auto px-4 py-8 max-w-4xl">
-          <h1 className="text-3xl font-bold mb-6">Goal History</h1>
+        <AppHeader title="Goal History" showAddEntry showBackButton />
 
+        <div className="container mx-auto px-4 max-w-4xl">
           <Card>
             <div className="text-center py-12">
               <div className="text-6xl mb-4">🎯</div>
@@ -168,15 +171,9 @@ export const GoalHistory = () => {
 
   return (
     <div className="min-h-screen bg-base-100">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold">Goal History</h1>
-          <Button variant="ghost" onClick={() => window.history.back()}>
-            ← Back
-          </Button>
-        </div>
+      <AppHeader title="Goal History" showAddEntry showBackButton />
 
+      <div className="container mx-auto px-4 max-w-4xl">
         {/* Achievement Stats */}
         <AchievementStats completedGoals={completedGoals} unit={unit} />
 

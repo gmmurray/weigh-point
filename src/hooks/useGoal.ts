@@ -32,7 +32,7 @@ export const useActiveGoal = () => {
       .subscribe();
 
     return () => subscription.unsubscribe();
-  }, [profile, profile.id, queryClient]);
+  }, [profile, profile?.id, queryClient]);
 
   return useQuery({
     queryKey: ['activeGoal', profile?.id],
