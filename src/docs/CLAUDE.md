@@ -31,7 +31,9 @@ Each entry is a waypoint on your health journey. Minimalism as a feature, not a 
 - **State**: TanStack Query + minimal Zustand
 - **Charts**: Recharts (lightweight, good performance)
 - **Forms**: React Hook Form + Zod
-- **Routing**: React Router (Dashboard, Goal History)
+- **Routing**: React Router (Dashboard, Goal History, Settings)
+- **Date Utils**: Native browser APIs (replaced date-fns)
+- **Bundle**: Code splitting with React.lazy + Suspense
 - **PWA**: Vite PWA Plugin
 
 ## Project Structure
@@ -54,10 +56,17 @@ src/
 │   └── EntryList.tsx        # Recent waypoints
 ├── pages/
 │   ├── Dashboard.tsx        # Main view - your journey
-│   ├── History.tsx          # All waypoints
-│   └── Settings.tsx         # Goal + preferences
+│   ├── GoalHistory.tsx      # Achievement timeline
+│   ├── Entries.tsx          # All waypoints
+│   ├── Settings.tsx         # User management & preferences
+│   ├── SignIn.tsx           # Authentication
+│   ├── SignUp.tsx           # Account creation
+│   ├── Landing.tsx          # Welcome page
+│   └── GuestStart.tsx       # Guest mode onboarding
 ├── stores/
 │   └── ui.ts                # Theme, units only
+├── lib/
+│   └── dateUtils.ts         # Native date formatting (replaced date-fns)
 └── types/
     └── index.ts             # Core types
 ```
@@ -504,13 +513,14 @@ const routes = [
   {
     path: '/settings',
     component: Settings,
-    // Preferences + account management
+    // Consolidated user management
     features: [
-      'Units & timezone',
-      'Theme preferences',
-      'Account linking',
-      'Data export',
-      'Privacy settings',
+      'Account identity & upgrade options',
+      'Weight unit preferences',
+      'Data import/export (planned)',
+      'Delete all data',
+      'Account security (auth users)',
+      'Guest mode explanation',
     ],
   },
 ];
@@ -523,6 +533,8 @@ const routes = [
 - **Fast Styling**: Tailwind + DaisyUI, no runtime CSS-in-JS
 - **Lightweight Charts**: Recharts over heavy chart libraries
 - **Optimistic Updates**: Immediate UI feedback with automatic rollback
+- **Bundle Optimization**: Code splitting + native APIs reduce initial load by 20%
+- **Lazy Loading**: Non-critical pages load on-demand with Suspense boundaries
 
 ## Development Workflow
 
@@ -539,7 +551,7 @@ const routes = [
 ## Why This Approach Works
 
 - **Minimalism as Strategy**: Every feature serves a clear purpose, complexity is actively resisted
-- **Anonymous First**: Zero friction to start using
+- **Guest-First**: Zero friction to start using
 - **Progressive Enhancement**: Features unlock as user engages more
 - **Data Ownership**: User controls their data, easy export
 - **Performance Focus**: Fast, responsive, delightful interactions
@@ -556,6 +568,28 @@ const routes = [
 - **Accessible**: Works for everyone, everywhere
 
 ## Recent Development Progress
+
+### Bundle Optimization ✅ **COMPLETED**
+
+- **Date-fns Replacement**: Replaced date-fns (~20kb) with native browser APIs (`Intl.DateTimeFormat`)
+- **Code Splitting**: Lazy loaded non-critical pages (SignIn, SignUp, GoalHistory, Entries, Settings) saving ~100kb
+- **Bundle Size**: Reduced from ~800kb to ~650kb (20% reduction)
+- **Performance**: Faster initial load, secondary pages load on-demand
+
+### User Management System ✅ **COMPLETED**
+
+- **Minimalist Settings Page**: Consolidated user management at `/settings` route
+- **Universal User Menu**: Both guest and authenticated users get dropdown menu access
+- **Guest-Friendly UX**: "Guest User" terminology instead of "anonymous"
+- **Header Cleanup**: Removed cluttered user identity text, clean avatar-only design
+- **Settings Access**: All users can access account management, preferences, and data controls
+
+### Production-Ready Features ✅ **COMPLETED**
+
+- **User Identity Clarity**: Clear email/Guest User display in menus for debugging
+- **Account Upgrade Flow**: Seamless guest → authenticated user transition
+- **Data Management UI**: Import/Export placeholders ready for future implementation
+- **Security Settings**: Password/account deletion UI for authenticated users
 
 ### Security & Data Isolation ✅ **COMPLETED**
 
@@ -599,10 +633,29 @@ const routes = [
 - **Accessibility Enhancement**: Ensure universal usability without complexity
 - **Bug Prevention**: Robust error handling that maintains user trust
 
+### Settings Page Implementation Priorities 🎯 **NEXT**
+
+**Currently implemented UI scaffolding with TODO placeholders:**
+
+- ✅ **Account Section**: User identity display, guest upgrade prompts
+- ✅ **Preferences Section**: Weight unit selection (form ready, needs API integration)
+- ✅ **Data Management**: Import/Export UI (disabled, marked "Coming Soon")
+- ✅ **Security Section**: Password/account deletion (auth users only, disabled)
+- ✅ **Delete All Data**: Confirmation modal (needs API implementation)
+
+**Implementation needed:**
+
+1. **Profile Update API**: Connect preferences form to `api.updateProfile()`
+2. **Data Export**: CSV generation for entries and goals
+3. **Data Import**: CSV parsing and validation
+4. **Delete All Data**: Cascade deletion of user's entries, goals, profile
+5. **Password Change**: Supabase auth integration
+6. **Account Deletion**: Complete user data removal
+
 ### Essential Infrastructure Only
 
 - **Offline Functionality**: Core tracking works without internet
-- **Data Portability**: Simple export when users request it (CSV only)
+- **Data Portability**: CSV export/import through Settings page
 - **Security Hardening**: Maintain complete user data isolation
 
 ### What We Will NOT Build

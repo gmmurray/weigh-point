@@ -14,7 +14,7 @@ export const AppHeader = ({
   showAddEntry = false,
   customActions,
 }: AppHeaderProps) => {
-  const { profile, signOut } = useAuth();
+  const { profile, user, signOut, isAuthenticated } = useAuth();
   const [showEntryModal, setShowEntryModal] = useState(false);
   const location = useLocation();
 
@@ -63,15 +63,71 @@ export const AppHeader = ({
           </div>
 
           <div className="flex items-center gap-3">
-            {/* User Status */}
-            <div className="flex items-center gap-2">
-              {profile?.is_anonymous ? (
-                <Link to="/auth/signup?redirect=/dashboard">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="bg-warning/10 border border-warning/30 hover:bg-warning/20 text-warning px-3 py-1 h-auto gap-2"
-                  >
+            {/* User Menu */}
+            <div className="dropdown dropdown-end">
+              <div
+                tabIndex={0}
+                role="button"
+                className={`w-8 h-8 rounded-full border flex items-center justify-center hover:opacity-80 cursor-pointer ${
+                  isAuthenticated
+                    ? 'bg-success/20 border-success/40'
+                    : 'bg-warning/20 border-warning/40'
+                }`}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  className={`w-4 h-4 ${
+                    isAuthenticated ? 'stroke-success' : 'stroke-warning'
+                  }`}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
+                </svg>
+              </div>
+              <ul
+                tabIndex={0}
+                className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow-lg border border-base-300"
+              >
+                <li className="menu-title">
+                  <span>{user?.email || 'Guest User'}</span>
+                </li>
+
+                {/* Guest users get Create Account option */}
+                {profile?.is_anonymous && (
+                  <>
+                    <li>
+                      <Link
+                        to="/auth/signup?redirect=/dashboard"
+                        className="text-warning"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          className="stroke-current w-4 h-4"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                        Create Account
+                      </Link>
+                    </li>
+                    <div className="divider my-1"></div>
+                  </>
+                )}
+
+                <li>
+                  <Link to="/settings">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
@@ -82,101 +138,38 @@ export const AppHeader = ({
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth="2"
-                        d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
                       />
                     </svg>
-                    <span className="text-xs font-medium">Sign Up to Sync</span>
-                  </Button>
-                </Link>
-              ) : (
-                <div className="flex items-center gap-2">
-                  {/* Sync Indicator */}
-                  <div className="flex items-center gap-1 px-2 py-1 bg-success/10 border border-success/30 rounded text-success text-xs">
+                    Settings
+                  </Link>
+                </li>
+                <div className="divider my-1"></div>
+                <li>
+                  <button onClick={signOut} className="text-error">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
                       viewBox="0 0 24 24"
-                      className="stroke-current w-3 h-3"
+                      className="stroke-current w-4 h-4"
                     >
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth="2"
-                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
                       />
                     </svg>
-                    <span className="font-medium">Synced</span>
-                  </div>
-
-                  {/* User Menu */}
-                  <div className="dropdown dropdown-end">
-                    <div
-                      tabIndex={0}
-                      role="button"
-                      className="w-8 h-8 rounded-full bg-success/20 border border-success/40 flex items-center justify-center hover:bg-success/30 cursor-pointer"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        className="stroke-success w-4 h-4"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                        />
-                      </svg>
-                    </div>
-                    <ul
-                      tabIndex={0}
-                      className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow-lg border border-base-300"
-                    >
-                      <li className="menu-title">
-                        <span>Account</span>
-                      </li>
-                      <li className="disabled">
-                        <span className="text-xs text-success">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            className="stroke-current w-3 h-3"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                            />
-                          </svg>
-                          Data synced across devices
-                        </span>
-                      </li>
-                      <div className="divider my-1"></div>
-                      <li>
-                        <button onClick={signOut} className="text-error">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            className="stroke-current w-4 h-4"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                            />
-                          </svg>
-                          Sign Out
-                        </button>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              )}
+                    Sign Out
+                  </button>
+                </li>
+              </ul>
             </div>
 
             {customActions}

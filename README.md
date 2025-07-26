@@ -8,7 +8,7 @@ WeighPoint transforms weight tracking from simple logging into meaningful goal a
 
 **Core Features:**
 
-- Secure anonymous mode - start tracking immediately
+- Secure guest mode - start tracking immediately
 - Intelligent goal system with automatic completion detection
 - Achievement celebration timeline with permanent milestone tracking
 - Clean, goal-focused interface that prioritizes your progress

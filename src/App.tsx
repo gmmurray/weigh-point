@@ -11,6 +11,7 @@ const SignIn = lazy(() => import('./pages/SignIn'));
 const SignUp = lazy(() => import('./pages/SignUp'));
 const GoalHistory = lazy(() => import('./pages/GoalHistory'));
 const Entries = lazy(() => import('./pages/Entries'));
+const Settings = lazy(() => import('./pages/Settings'));
 
 function App() {
   return (
@@ -49,6 +50,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Entries />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <Settings />
                 </ProtectedRoute>
               }
             />
