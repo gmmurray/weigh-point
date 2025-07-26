@@ -7,10 +7,13 @@ A thoughtfully minimal AND goal-focused React TypeScript PWA for personal weight
 **Core Philosophy:**
 
 - **Minimalism as Power**: Strip away distractions to focus on what matters - your progress
+- **Minimalism as Discipline**: Every feature request must justify why it's essential
 - **Goal-Centric Design**: Every feature serves the purpose of helping you set, track, and achieve meaningful goals
 - **Celebrate Every Victory**: Whether you lose 2 pounds or 20, every goal completion deserves recognition and celebration
 - **Progress Over Perfection**: Small consistent steps create lasting change
 - **Permanent Achievement Tracking**: Once achieved, goals remain completed forever - weight fluctuations don't erase success
+- **Respectful by Default**: No dark patterns, no pressure, no unnecessary interruptions
+- **Timeless Design**: Build for long-term use, not trending features
 
 **Why Goal Celebration Matters:**
 Weight loss and fitness journeys are deeply personal and often challenging. WeighPoint believes that every goal - no matter how "small" - represents dedication, discipline, and personal growth. A 5-pound goal achieved is just as worthy of celebration as a 50-pound goal. The app automatically detects goal completion and permanently records achievements, letting you savor success and build a timeline of victories before moving to the next challenge.
@@ -535,12 +538,14 @@ const routes = [
 
 ## Why This Approach Works
 
-- **Minimalism as Strategy**: Every feature serves a clear purpose
+- **Minimalism as Strategy**: Every feature serves a clear purpose, complexity is actively resisted
 - **Anonymous First**: Zero friction to start using
 - **Progressive Enhancement**: Features unlock as user engages more
 - **Data Ownership**: User controls their data, easy export
 - **Performance Focus**: Fast, responsive, delightful interactions
 - **Cross-Platform**: PWA works everywhere, syncs everywhere
+- **Sustainable Development**: Simple codebase is easier to maintain and less prone to bugs
+- **Respectful Technology**: No surveillance, no manipulation, no feature pressure
 
 ## Design Philosophy
 
@@ -585,44 +590,89 @@ const routes = [
 - **Migration System**: 10+ migrations applied successfully with proper rollback safety
 - **Data Cleanup**: Removed invalid goals with zero start weights
 
-## Future Development Plans
+## Future Development Philosophy
 
-### Phase 1: Enhanced Entry Management 🎯 **PRIORITY**
+### Continuous Refinement 🎯 **PRIORITY**
 
-- **Cohesive Entries List Page**: Dedicated page for viewing all weight entries
-  - Advanced filtering (date ranges, weight ranges)
-  - Bulk operations (delete multiple entries)
-  - Search functionality
-  - Pagination for large datasets
-- **Export Functionality**:
-  - CSV export with customizable date ranges
-  - JSON export for data portability
-  - Goal achievement data included in exports
-- **Import Functionality**:
-  - CSV import with validation
-  - Data reconciliation with existing entries
-  - Bulk entry creation from external sources
+- **Perfect Core Functions**: Refine weight entry and goal tracking until effortless
+- **Performance Optimization**: Faster load times, smoother interactions
+- **Accessibility Enhancement**: Ensure universal usability without complexity
+- **Bug Prevention**: Robust error handling that maintains user trust
 
-### Phase 2: Advanced Analytics
+### Essential Infrastructure Only
 
-- **Trend Analysis**: Moving averages, velocity tracking
-- **Goal Prediction**: AI-powered completion date estimates
-- **Health Metrics**: BMI tracking, progress velocity
-- **Custom Reports**: Printable progress summaries
+- **Offline Functionality**: Core tracking works without internet
+- **Data Portability**: Simple export when users request it (CSV only)
+- **Security Hardening**: Maintain complete user data isolation
 
-### Phase 3: PWA & Mobile Enhancement
+### What We Will NOT Build
 
-- **Offline Functionality**: Complete offline mode with sync
-- **Push Notifications**: Goal reminders and celebration alerts
-- **Home Screen Widget**: Quick entry from device home screen
-- **Camera Integration**: Photo progress tracking
+- Complex analytics or reporting systems
+- Social features or sharing mechanisms
+- Notification systems or gamification
+- Bulk data management tools
+- Advanced filtering or search capabilities
 
-### Phase 4: Social & Sharing
+**Guiding Question**: Does this feature help users track weight and achieve goals more simply? If not, we don't build it.
 
-- **Achievement Sharing**: Social media integration for goal celebrations
-- **Progress Photos**: Before/after timeline
-- **Export Formats**: PDF reports, infographics
-- **Family Sharing**: Separate accounts with optional progress sharing
+## Code Style Guidelines
+
+### Commenting Philosophy: Perfect, Not Excessive
+
+**When to Comment:**
+
+- Complex business logic that isn't immediately obvious
+- API integration points and external dependencies
+- Security-sensitive code sections
+- Non-obvious performance optimizations
+- Temporary workarounds with TODO/FIXME tags
+
+**When NOT to Comment:**
+
+- Self-explanatory function names and variable declarations
+- Standard React patterns (useState, useEffect, etc.)
+- Simple utility functions with clear single purposes
+- Obvious type definitions and interfaces
+
+**Comment Quality Standards:**
+
+```typescript
+// ❌ Excessive - the code is self-explanatory
+const weight = parseFloat(inputValue); // Parse input as float
+
+// ✅ Perfect - explains the business logic
+const weight = parseFloat(inputValue);
+// Round to 1 decimal place to match scale precision
+const roundedWeight = Math.round(weight * 10) / 10;
+
+// ❌ Excessive - React patterns don't need explanation
+useEffect(() => {
+  // Subscribe to real-time entries
+  const subscription = supabase.channel('entries')...
+}, [user?.id]); // Re-run when user ID changes
+
+// ✅ Perfect - explains the specific business context
+useEffect(() => {
+  // Auto-complete goals when new entries meet target weight
+  if (latestEntry && activeGoal && meetsGoalCriteria(latestEntry, activeGoal)) {
+    completeGoal(activeGoal.id, latestEntry.id);
+  }
+}, [latestEntry, activeGoal]);
+```
+
+### Code Organization Principles
+
+- **Function naming**: Descriptive verbs that eliminate need for comments
+- **Component structure**: Props → hooks → handlers → render
+- **File organization**: Group related functions, separate concerns clearly
+- **Type definitions**: Co-locate with usage when possible
+
+### Minimalist Code Standards
+
+- **No dead code**: Remove commented-out code blocks immediately
+- **No speculative features**: Don't build "for future use"
+- **Single responsibility**: Each function does one thing well
+- **Clear naming**: Code should read like well-written prose
 
 ## Common Development Tasks
 
