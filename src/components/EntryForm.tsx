@@ -1,6 +1,5 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useRef } from 'react';
 import { Button, Input } from './ui';
 import { entrySchema, type EntryFormData } from '../lib/validations';
 import { useCreateEntry } from '../hooks/useEntries';
@@ -11,7 +10,6 @@ interface EntryFormProps {
 
 export const EntryForm = ({ onSuccess }: EntryFormProps) => {
   const createEntry = useCreateEntry();
-  const weightInputRef = useRef<HTMLInputElement>(null);
 
   const getCurrentDateTime = () => {
     const now = new Date();
@@ -41,13 +39,6 @@ export const EntryForm = ({ onSuccess }: EntryFormProps) => {
     },
   });
 
-  // Auto-focus weight input when form opens
-  useEffect(() => {
-    if (weightInputRef.current) {
-      weightInputRef.current.focus();
-    }
-  }, []);
-
   const onSubmit = async (data: EntryFormData) => {
     try {
       await createEntry.mutateAsync(data);
@@ -62,7 +53,6 @@ export const EntryForm = ({ onSuccess }: EntryFormProps) => {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <Input
         {...register('weight', { valueAsNumber: true })}
-        ref={weightInputRef}
         type="number"
         step="0.1"
         label="Weight"

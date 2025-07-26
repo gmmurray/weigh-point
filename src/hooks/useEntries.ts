@@ -32,7 +32,7 @@ export const useEntries = (limit?: number) => {
       .subscribe();
 
     return () => subscription.unsubscribe();
-  }, [profile, profile.id, queryClient]);
+  }, [profile, profile?.id, queryClient]);
 
   return useQuery({
     queryKey: ['entries', profile?.id, limit],

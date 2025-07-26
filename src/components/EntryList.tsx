@@ -1,15 +1,23 @@
-import { useState } from 'react';
-import { format } from 'date-fns';
 import { Button, Card, CardTitle, Modal } from './ui';
-import { useEntries, useDeleteEntry } from '../hooks/useEntries';
-import { useAuth } from '../hooks/useAuth';
+import { useDeleteEntry, useEntries } from '../hooks/useEntries';
+
 import type { Entry } from '../types';
+import { Link } from 'react-router-dom';
+import { format } from 'date-fns';
+import { useAuth } from '../hooks/useAuth';
+import { useState } from 'react';
 
 interface EntryListProps {
   limit?: number;
+  title?: string;
+  showViewAll?: boolean;
 }
 
-export const EntryList = ({ limit = 5 }: EntryListProps) => {
+export const EntryList = ({
+  limit = 5,
+  title,
+  showViewAll = false,
+}: EntryListProps) => {
   const { profile } = useAuth();
   const { data: entries, isLoading } = useEntries(limit);
   const deleteEntry = useDeleteEntry();
@@ -36,7 +44,7 @@ export const EntryList = ({ limit = 5 }: EntryListProps) => {
   if (isLoading) {
     return (
       <Card>
-        <CardTitle>Recent Entries</CardTitle>
+        {!!title && <CardTitle>{title}</CardTitle>}
         <div className="space-y-2">
           {[...Array(3)].map((_, i) => (
             <div key={i} className="skeleton h-12 w-full" />
@@ -49,7 +57,7 @@ export const EntryList = ({ limit = 5 }: EntryListProps) => {
   if (!entries?.length) {
     return (
       <Card>
-        <CardTitle>Recent Entries</CardTitle>
+        {!!title && <CardTitle>{title}</CardTitle>}
         <p className="text-base-content/70 text-center py-8">
           No entries yet. Add your first weight entry to get started!
         </p>
@@ -60,7 +68,16 @@ export const EntryList = ({ limit = 5 }: EntryListProps) => {
   return (
     <>
       <Card>
-        <CardTitle>Recent Entries</CardTitle>
+        <div className="flex items-center justify-between mb-4">
+          {!!title && <CardTitle>{title}</CardTitle>}
+          {showViewAll && (
+            <Link to="/entries">
+              <Button variant="ghost" size="sm" className="text-primary">
+                View All →
+              </Button>
+            </Link>
+          )}
+        </div>
         <div className="space-y-2">
           {entries.map((entry: Entry) => (
             <div

@@ -1,12 +1,13 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { Button, Modal } from '../components/ui';
-import { WeightChart } from '../components/WeightChart';
+
 import { EntryForm } from '../components/EntryForm';
 import { EntryList } from '../components/EntryList';
 import { GoalCard } from '../components/GoalCard';
+import { Link } from 'react-router-dom';
+import { WeightChart } from '../components/WeightChart';
 import { useAuth } from '../hooks/useAuth';
 import { useCompletedGoals } from '../hooks/useGoal';
+import { useState } from 'react';
 
 export const Dashboard = () => {
   const { profile, isLoading } = useAuth();
@@ -91,7 +92,7 @@ export const Dashboard = () => {
           {/* Sidebar - spans 1 column */}
           <div className="lg:col-span-1 space-y-6">
             <GoalCard />
-            <EntryList limit={5} />
+            <EntryList title="Recent Entries" limit={5} showViewAll />
           </div>
         </div>
 
