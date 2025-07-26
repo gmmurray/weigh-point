@@ -14,15 +14,29 @@ export const entrySchema = z.object({
   }),
 });
 
-export const goalSchema = z.object({
-  target_weight: z
-    .number({
-      message: 'Please enter a valid target weight',
-    })
-    .min(0.1, 'Target weight must be at least 0.1')
-    .max(1000, 'Target weight cannot exceed 1000'),
-  target_date: z.string().date().optional(),
-});
+export const createGoalSchema = (currentWeight?: number) =>
+  z.object({
+    target_weight: z
+      .number({
+        message: 'Please enter a valid target weight',
+      })
+      .min(0.1, 'Target weight must be at least 0.1')
+      .max(1000, 'Target weight cannot exceed 1000')
+      .refine(
+        value => {
+          if (currentWeight !== undefined && value === currentWeight) {
+            return false;
+          }
+          return true;
+        },
+        {
+          message: 'Target weight must be different from your current weight',
+        },
+      ),
+    target_date: z.string().date().optional(),
+  });
+
+export const goalSchema = createGoalSchema();
 
 export const profileSchema = z.object({
   preferred_unit: z.enum(['lbs', 'kg']).optional(),

@@ -24,13 +24,63 @@ export const api = {
     const { data: user } = await supabase.auth.getUser();
     if (!user.user) throw new Error('No authenticated user');
 
-    return supabase
+    // Instead of trying to change the profile ID, we'll transfer the data
+    // from the anonymous profile to a new authenticated profile
+
+    // 1. Create authenticated profile with auth user ID
+    const { data: authProfile, error: profileError } = await supabase
       .from('profiles')
-      .update({
+      .insert({
         id: user.user.id,
         is_anonymous: false,
       })
+      .select()
+      .single();
+
+    if (profileError) throw profileError;
+
+    // 2. Transfer entries from anonymous to authenticated profile
+    const { error: entriesError } = await supabase
+      .from('entries')
+      .update({ user_id: user.user.id })
+      .eq('user_id', anonId);
+
+    if (entriesError) {
+      console.error('Failed to transfer entries:', entriesError);
+    }
+
+    // 3. Transfer goals from anonymous to authenticated profile
+    const { error: goalsError } = await supabase
+      .from('goals')
+      .update({ user_id: user.user.id })
+      .eq('user_id', anonId);
+
+    if (goalsError) {
+      console.error('Failed to transfer goals:', goalsError);
+    }
+
+    // 4. Delete the old anonymous profile
+    const { error: deleteError } = await supabase
+      .from('profiles')
+      .delete()
       .eq('id', anonId);
+
+    if (deleteError) {
+      console.error('Failed to delete anonymous profile:', deleteError);
+    }
+
+    return { data: authProfile, error: null };
+  },
+
+  createAuthProfile: async (userId: string) => {
+    return supabase
+      .from('profiles')
+      .insert({
+        id: userId,
+        is_anonymous: false,
+      })
+      .select()
+      .single();
   },
 
   // Entries with smart defaults
@@ -104,6 +154,12 @@ export const api = {
     }
 
     const startWeight = entries[0].weight;
+
+    if (startWeight === goal.target_weight) {
+      throw new Error(
+        'Target weight must be different from your current weight',
+      );
+    }
 
     return supabase
       .from('goals')

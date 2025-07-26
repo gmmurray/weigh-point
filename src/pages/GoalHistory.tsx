@@ -1,9 +1,11 @@
-import { format, differenceInDays } from 'date-fns';
-import { Card, CardTitle, Button } from '../components/ui';
-import { useCompletedGoals } from '../hooks/useGoal';
-import { useAuth } from '../hooks/useAuth';
+import { Card, CardTitle } from '../components/ui';
+import { differenceInDays, format } from 'date-fns';
+
 import { AppHeader } from '../components/AppHeader';
+import { GoalCard } from '../components/GoalCard';
 import type { GoalWithEntry } from '../types';
+import { useAuth } from '../hooks/useAuth';
+import { useCompletedGoals } from '../hooks/useGoal';
 
 interface GoalTimelineItemProps {
   goal: GoalWithEntry;
@@ -124,7 +126,8 @@ const AchievementStats = ({
 
 export const GoalHistory = () => {
   const { profile, isLoading } = useAuth();
-  const { data: completedGoals, isLoading: goalsLoading } = useCompletedGoals();
+  const { data: completedGoals = [], isLoading: goalsLoading } =
+    useCompletedGoals();
 
   const unit = profile?.preferred_unit || 'lbs';
 
@@ -136,44 +139,16 @@ export const GoalHistory = () => {
         <div className="container mx-auto px-4 max-w-4xl">
           {/* Page Header */}
           <div className="mb-8">
-            <h2 className="text-2xl font-bold">Goal History</h2>
+            <h2 className="text-2xl font-bold">Goals</h2>
           </div>
 
+          <div className="skeleton h-32 w-full mb-6" />
           <div className="skeleton h-8 w-48 mb-6" />
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
               <div key={i} className="skeleton h-20 w-full" />
             ))}
           </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!completedGoals?.length) {
-    return (
-      <div className="min-h-screen bg-base-100">
-        <AppHeader showAddEntry />
-
-        <div className="container mx-auto px-4 max-w-4xl">
-          {/* Page Header */}
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold">Goal History</h2>
-          </div>
-
-          <Card>
-            <div className="text-center py-12">
-              <div className="text-6xl mb-4">🎯</div>
-              <CardTitle className="mb-4">No Goals Completed Yet</CardTitle>
-              <p className="text-base-content/70 mb-6">
-                Your achievement timeline will appear here once you complete
-                your first goal.
-              </p>
-              <Button onClick={() => window.history.back()}>
-                Back to Dashboard
-              </Button>
-            </div>
-          </Card>
         </div>
       </div>
     );
@@ -186,34 +161,53 @@ export const GoalHistory = () => {
       <div className="container mx-auto px-4 max-w-4xl">
         {/* Page Header */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold">Goal History</h2>
+          <h2 className="text-2xl font-bold">Goals</h2>
+          <p className="text-base-content/70">
+            Track your current goal and celebrate past achievements
+          </p>
         </div>
 
-        {/* Achievement Stats */}
-        <AchievementStats completedGoals={completedGoals} unit={unit} />
-
-        {/* Achievement Timeline */}
-        <Card>
-          <CardTitle className="mb-6 flex items-center gap-2">
-            <span>🏆</span>
-            Achievement Timeline
-          </CardTitle>
-
-          <div className="space-y-0">
-            {completedGoals.map(goal => (
-              <GoalTimelineItem key={goal.id} goal={goal} unit={unit} />
-            ))}
+        <div className="space-y-8">
+          {/* Current Goal (or Goal Creation) */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <span>🎯</span>
+              Current Goal
+            </h3>
+            <GoalCard />
           </div>
-        </Card>
 
-        {/* Motivational footer */}
-        <div className="text-center mt-8 p-6 bg-success/5 rounded-lg border border-success/20">
-          <div className="text-success font-semibold mb-2">
-            🎉 Every goal achieved is a victory worth celebrating!
-          </div>
-          <div className="text-sm text-base-content/70">
-            Keep up the amazing progress on your health journey.
-          </div>
+          {/* Completed Goals Section */}
+          {completedGoals?.length > 0 && (
+            <>
+              {/* Achievement Stats */}
+              <AchievementStats completedGoals={completedGoals} unit={unit} />
+
+              {/* Achievement Timeline */}
+              <Card>
+                <CardTitle className="mb-6 flex items-center gap-2">
+                  <span>🏆</span>
+                  Achievement Timeline
+                </CardTitle>
+
+                <div className="space-y-0">
+                  {completedGoals.map(goal => (
+                    <GoalTimelineItem key={goal.id} goal={goal} unit={unit} />
+                  ))}
+                </div>
+              </Card>
+
+              {/* Motivational footer */}
+              <div className="text-center p-6 bg-success/5 rounded-lg border border-success/20">
+                <div className="text-success font-semibold mb-2">
+                  🎉 Every goal achieved is a victory worth celebrating!
+                </div>
+                <div className="text-sm text-base-content/70">
+                  Keep up the amazing progress on your health journey.
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

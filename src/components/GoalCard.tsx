@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button, Card, CardTitle, CardActions, Input, Modal } from './ui';
-import { goalSchema, type GoalFormData } from '../lib/validations';
+import { createGoalSchema, type GoalFormData } from '../lib/validations';
 import {
   useActiveGoal,
   useCompletedGoals,
@@ -25,13 +25,16 @@ export const GoalCard = () => {
   const [showGoalModal, setShowGoalModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
+  const currentWeight = entries?.[0]?.weight;
+  const unit = profile?.preferred_unit || 'lbs';
+
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors },
   } = useForm<GoalFormData>({
-    resolver: zodResolver(goalSchema),
+    resolver: zodResolver(createGoalSchema(currentWeight)),
     defaultValues: {
       target_date: format(
         new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days from now
@@ -39,9 +42,6 @@ export const GoalCard = () => {
       ),
     },
   });
-
-  const currentWeight = entries?.[0]?.weight;
-  const unit = profile?.preferred_unit || 'lbs';
 
   const onSubmit = async (data: GoalFormData) => {
     try {

@@ -67,6 +67,9 @@ export const useSetGoal = () => {
     mutationFn: async (goal: CreateGoalInput) => {
       if (!profile?.id) throw new Error('No user profile');
       const result = await api.setGoal(profile.id, goal);
+      if (result.error) {
+        throw new Error(result.error.message || 'Failed to create goal');
+      }
       return result.data;
     },
     onSuccess: () => {
