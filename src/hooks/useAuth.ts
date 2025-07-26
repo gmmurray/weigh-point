@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import type { Session } from '@supabase/supabase-js';
+import type { Profile } from '../types';
 
 import { api } from '../lib/api';
 import { supabase } from '../lib/supabase';
@@ -9,7 +11,7 @@ export const useAuth = () => {
   const queryClient = useQueryClient();
 
   // Get current session
-  const { data: session } = useQuery({
+  const { data: session } = useQuery<Session | null>({
     queryKey: ['session'],
     queryFn: async () => {
       const { data } = await supabase.auth.getSession();
@@ -18,7 +20,7 @@ export const useAuth = () => {
   });
 
   // Get or create profile
-  const { data: profile, error: profileError } = useQuery({
+  const { data: profile, error: profileError } = useQuery<Profile | null>({
     queryKey: ['profile'],
     queryFn: async () => {
       // Check if we have a stored anonymous profile ID

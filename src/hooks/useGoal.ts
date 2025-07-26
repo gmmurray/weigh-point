@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import type { CreateGoalInput } from '../types';
+import type { CreateGoalInput, Goal, GoalWithEntry } from '../types';
 import { api } from '../lib/api';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './useAuth';
@@ -34,7 +34,7 @@ export const useActiveGoal = () => {
     return () => subscription.unsubscribe();
   }, [profile, profile?.id, queryClient]);
 
-  return useQuery({
+  return useQuery<Goal | null>({
     queryKey: ['activeGoal', profile?.id],
     queryFn: async () => {
       if (!profile?.id) return null;
@@ -48,7 +48,7 @@ export const useActiveGoal = () => {
 export const useCompletedGoals = () => {
   const { profile } = useAuth();
 
-  return useQuery({
+  return useQuery<GoalWithEntry[]>({
     queryKey: ['completedGoals', profile?.id],
     queryFn: async () => {
       if (!profile?.id) return [];
@@ -63,7 +63,7 @@ export const useSetGoal = () => {
   const queryClient = useQueryClient();
   const { profile } = useAuth();
 
-  return useMutation({
+  return useMutation<Goal, Error, CreateGoalInput>({
     mutationFn: async (goal: CreateGoalInput) => {
       if (!profile?.id) throw new Error('No user profile');
       const result = await api.setGoal(profile.id, goal);
@@ -79,7 +79,11 @@ export const useCompleteGoal = () => {
   const queryClient = useQueryClient();
   const { profile } = useAuth();
 
-  return useMutation({
+  return useMutation<
+    Goal,
+    Error,
+    { goalId: string; entryId: string; completedAt: string }
+  >({
     mutationFn: async ({
       goalId,
       entryId,
@@ -109,7 +113,7 @@ export const useClearGoal = () => {
   const queryClient = useQueryClient();
   const { profile } = useAuth();
 
-  return useMutation({
+  return useMutation<null, Error, string>({
     mutationFn: async (goalId: string) => {
       if (!profile?.id) throw new Error('No user profile');
       const result = await api.clearGoal(profile.id, goalId);

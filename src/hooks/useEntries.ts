@@ -1,7 +1,7 @@
 import { useActiveGoal, useCompleteGoal } from './useGoal';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import type { CreateEntryInput } from '../types';
+import type { CreateEntryInput, Entry } from '../types';
 import { api } from '../lib/api';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './useAuth';
@@ -34,7 +34,7 @@ export const useEntries = (limit?: number) => {
     return () => subscription.unsubscribe();
   }, [profile, profile?.id, queryClient]);
 
-  return useQuery({
+  return useQuery<Entry[]>({
     queryKey: ['entries', profile?.id, limit],
     queryFn: async () => {
       if (!profile?.id) return [];
@@ -51,7 +51,7 @@ export const useCreateEntry = () => {
   const { data: activeGoal } = useActiveGoal();
   const completeGoal = useCompleteGoal();
 
-  return useMutation({
+  return useMutation<Entry, Error, CreateEntryInput>({
     mutationFn: async (entry: CreateEntryInput) => {
       if (!profile?.id) throw new Error('No user profile');
       const result = await api.createEntry(profile.id, entry);

@@ -131,9 +131,14 @@ export const GoalHistory = () => {
   if (isLoading || goalsLoading) {
     return (
       <div className="min-h-screen bg-base-100">
-        <AppHeader title="Goal History" showAddEntry showBackButton />
+        <AppHeader showAddEntry />
 
         <div className="container mx-auto px-4 max-w-4xl">
+          {/* Page Header */}
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold">Goal History</h2>
+          </div>
+
           <div className="skeleton h-8 w-48 mb-6" />
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
@@ -148,9 +153,14 @@ export const GoalHistory = () => {
   if (!completedGoals?.length) {
     return (
       <div className="min-h-screen bg-base-100">
-        <AppHeader title="Goal History" showAddEntry showBackButton />
+        <AppHeader showAddEntry />
 
         <div className="container mx-auto px-4 max-w-4xl">
+          {/* Page Header */}
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold">Goal History</h2>
+          </div>
+
           <Card>
             <div className="text-center py-12">
               <div className="text-6xl mb-4">🎯</div>
@@ -171,9 +181,14 @@ export const GoalHistory = () => {
 
   return (
     <div className="min-h-screen bg-base-100">
-      <AppHeader title="Goal History" showAddEntry showBackButton />
+      <AppHeader showAddEntry />
 
       <div className="container mx-auto px-4 max-w-4xl">
+        {/* Page Header */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold">Goal History</h2>
+        </div>
+
         {/* Achievement Stats */}
         <AchievementStats completedGoals={completedGoals} unit={unit} />
 

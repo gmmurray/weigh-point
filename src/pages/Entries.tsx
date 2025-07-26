@@ -4,15 +4,14 @@ import { EntryList } from '../components/EntryList';
 export const Entries = () => {
   return (
     <div className="min-h-screen bg-base-100">
-      <AppHeader
-        title="All Entries"
-        showAddEntry
-        showBackButton
-        backTo="/"
-        backText="Dashboard"
-      />
+      <AppHeader showAddEntry />
 
       <div className="container mx-auto px-4 max-w-4xl">
+        {/* Page Header */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold">All Entries</h2>
+        </div>
+
         {/* Full entry list without limit */}
         <EntryList />
       </div>

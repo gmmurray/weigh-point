@@ -47,3 +47,16 @@ export interface UpdateProfileInput {
 export interface GoalWithEntry extends Goal {
   entries?: Entry;
 }
+
+// API Response types
+export interface ApiResponse<T> {
+  data: T | null;
+  error: unknown;
+}
+
+export interface ApiError {
+  message: string;
+  details?: string;
+  hint?: string;
+  code?: string;
+}
