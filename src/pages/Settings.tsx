@@ -1,9 +1,11 @@
-import { Button, Card, CardTitle, Modal } from '../components/ui';
+import { Button, Card, CardTitle, Modal, Toast } from '../components/ui';
 
 import { AppHeader } from '../components/AppHeader';
 import { Link } from 'react-router-dom';
 import { formatDate } from '../lib/dateUtils';
 import { useAuth } from '../hooks/useAuth';
+import { useProfile } from '../hooks/useProfile';
+import { useToast } from '../hooks/useToast';
 import { useForm } from 'react-hook-form';
 import { useState } from 'react';
 import { z } from 'zod';
@@ -13,12 +15,50 @@ const preferencesSchema = z.object({
   preferred_unit: z.enum(['lbs', 'kg']),
 });
 
-type PreferencesFormData = z.infer<typeof preferencesSchema>;
+const passwordSchema = z
+  .object({
+    newPassword: z.string().min(6, 'Password must be at least 6 characters'),
+    confirmPassword: z.string(),
+  })
+  .refine(data => data.newPassword === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ['confirmPassword'],
+  });
 
+type PreferencesFormData = z.infer<typeof preferencesSchema>;
+type PasswordFormData = z.infer<typeof passwordSchema>;
+
+/**
+ * Settings page providing user account management and app preferences.
+ *
+ * Features:
+ * - Account identity display with upgrade prompts for guest users
+ * - Weight unit preferences (lbs/kg) with real-time form updates
+ * - Data management: export/import tools and bulk deletion
+ * - Security settings for authenticated users (password, account deletion)
+ *
+ * User Experience: Consolidated settings prevent UI fragmentation while
+ * maintaining clear sections for different user types (guest vs authenticated).
+ */
 const Settings = () => {
   const { profile, user, isAuthenticated } = useAuth();
+  const {
+    updateProfile,
+    deleteAllData,
+    exportData,
+    changePassword,
+    deleteAccount,
+    isUpdating,
+    isDeleting,
+    isExporting,
+    isChangingPassword,
+    isDeletingAccount,
+  } = useProfile();
+  const { toasts, success, error } = useToast();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [showAccountDeleteModal, setShowAccountDeleteModal] = useState(false);
 
   const {
     register,
@@ -31,29 +71,133 @@ const Settings = () => {
     },
   });
 
+  const {
+    register: registerPassword,
+    handleSubmit: handleSubmitPassword,
+    formState: { errors: passwordErrors },
+    reset: resetPasswordForm,
+  } = useForm<PasswordFormData>({
+    resolver: zodResolver(passwordSchema),
+  });
+
+  /**
+   * Handles preference form submission with immediate UI feedback.
+   *
+   * Business Context: Weight unit changes affect all weight displays across
+   * the application. Users expect immediate visual feedback when changing
+   * their preferred unit to verify the setting took effect.
+   *
+   * User Experience: Form remains disabled during update to prevent duplicate
+   * submissions. Success feedback is handled through optimistic updates in useProfile.
+   */
   const onSubmitPreferences = async (data: PreferencesFormData) => {
     try {
-      // TODO: Implement profile update API call
-      console.log('Update preferences:', data);
-    } catch (error) {
-      console.error('Failed to update preferences:', error);
+      await updateProfile.mutateAsync(data);
+      success('Preferences saved successfully!');
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : 'Failed to update preferences. Please try again.';
+      error(errorMessage);
     }
   };
 
+  /**
+   * Handles complete user data deletion with confirmation flow.
+   *
+   * Business Context: Provides users complete control over their data for
+   * privacy compliance. Uses database CASCADE constraints to ensure no
+   * orphaned records remain after deletion.
+   *
+   * User Experience: Modal confirmation prevents accidental deletion.
+   * Operation is irreversible, so clear warning messaging is critical.
+   */
   const handleDeleteAllData = async () => {
     try {
-      // TODO: Implement delete all data
-      console.log('Delete all data');
+      await deleteAllData.mutateAsync();
+      // Success handling (redirect to landing) is handled in useProfile
       setShowDeleteModal(false);
-    } catch (error) {
-      console.error('Failed to delete data:', error);
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : 'Failed to delete data. Please try again.';
+      error(errorMessage);
+      setShowDeleteModal(false);
     }
   };
 
-  const handleExportData = () => {
-    // TODO: Implement data export
-    console.log('Export data as CSV');
-    setShowExportModal(false);
+  /**
+   * Handles CSV data export with user feedback and error handling.
+   *
+   * Business Context: Data export provides users full control over their
+   * weight tracking history. Essential for data portability and backup.
+   *
+   * User Experience: Modal provides clear explanation of what will be exported.
+   * Multiple file downloads are handled with appropriate timing delays.
+   */
+  const handleExportData = async () => {
+    try {
+      await exportData.mutateAsync();
+      success('Data exported successfully! Check your downloads folder.');
+      setShowExportModal(false);
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : 'Failed to export data. Please try again.';
+      error(errorMessage);
+      setShowExportModal(false);
+    }
+  };
+
+  /**
+   * Handles password change with form validation and user feedback.
+   *
+   * Business Context: Essential security feature for authenticated users.
+   * Allows users to update passwords for account security maintenance.
+   *
+   * User Experience: Form validation prevents weak passwords. Success
+   * feedback confirms change while hiding the form to prevent confusion.
+   */
+  const onSubmitPasswordChange = async (data: PasswordFormData) => {
+    try {
+      await changePassword.mutateAsync(data.newPassword);
+      success('Password updated successfully!');
+      resetPasswordForm();
+      setShowPasswordForm(false);
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : 'Failed to update password. Please try again.';
+      error(errorMessage);
+    }
+  };
+
+  /**
+   * Handles complete account deletion for authenticated users.
+   *
+   * Business Context: Provides complete account removal including auth
+   * credentials. Different from data deletion - removes the entire account.
+   *
+   * User Experience: Modal confirmation prevents accidental deletion.
+   * Operation is irreversible and includes all user data.
+   */
+  const handleDeleteAccount = async () => {
+    try {
+      await deleteAccount.mutateAsync();
+      // Success handling (redirect) is handled in useProfile
+      setShowAccountDeleteModal(false);
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : 'Failed to delete account. Please try again.';
+      error(errorMessage);
+      setShowAccountDeleteModal(false);
+    }
   };
 
   if (!profile) {
@@ -184,7 +328,7 @@ const Settings = () => {
                 )}
               </div>
 
-              <Button type="submit" variant="primary">
+              <Button type="submit" variant="primary" loading={isUpdating}>
                 Save Preferences
               </Button>
             </form>
@@ -205,14 +349,24 @@ const Settings = () => {
                     Import weight entries from CSV file
                   </div>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled
-                  className="opacity-50"
-                >
-                  Coming Soon
-                </Button>
+                <label className="btn btn-outline btn-sm cursor-pointer">
+                  <input
+                    type="file"
+                    accept=".csv"
+                    className="hidden"
+                    onChange={e => {
+                      // TODO: Implement CSV import functionality
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        error(
+                          'CSV import feature coming soon! Use export for now.',
+                        );
+                        e.target.value = ''; // Reset file input
+                      }
+                    }}
+                  />
+                  Import CSV
+                </label>
               </div>
 
               <div className="flex items-center justify-between">
@@ -226,10 +380,9 @@ const Settings = () => {
                   variant="outline"
                   size="sm"
                   onClick={() => setShowExportModal(true)}
-                  disabled
-                  className="opacity-50"
+                  loading={isExporting}
                 >
-                  Coming Soon
+                  Export
                 </Button>
               </div>
 
@@ -247,6 +400,7 @@ const Settings = () => {
                   size="sm"
                   onClick={() => setShowDeleteModal(true)}
                   className="text-error border-error hover:bg-error/10"
+                  loading={isDeleting}
                 >
                   Delete
                 </Button>
@@ -273,12 +427,78 @@ const Settings = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    disabled
-                    className="opacity-50"
+                    onClick={() => setShowPasswordForm(!showPasswordForm)}
                   >
-                    Coming Soon
+                    {showPasswordForm ? 'Cancel' : 'Change Password'}
                   </Button>
                 </div>
+
+                {showPasswordForm && (
+                  <form
+                    onSubmit={handleSubmitPassword(onSubmitPasswordChange)}
+                    className="space-y-4 p-4 bg-base-200 rounded-lg"
+                  >
+                    <div>
+                      <label className="label">
+                        <span className="label-text">New Password</span>
+                      </label>
+                      <input
+                        {...registerPassword('newPassword')}
+                        type="password"
+                        className="input input-bordered w-full"
+                        placeholder="Enter new password"
+                      />
+                      {passwordErrors.newPassword && (
+                        <div className="label">
+                          <span className="label-text-alt text-error">
+                            {passwordErrors.newPassword.message}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="label">
+                        <span className="label-text">Confirm Password</span>
+                      </label>
+                      <input
+                        {...registerPassword('confirmPassword')}
+                        type="password"
+                        className="input input-bordered w-full"
+                        placeholder="Confirm new password"
+                      />
+                      {passwordErrors.confirmPassword && (
+                        <div className="label">
+                          <span className="label-text-alt text-error">
+                            {passwordErrors.confirmPassword.message}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Button
+                        type="submit"
+                        variant="primary"
+                        size="sm"
+                        loading={isChangingPassword}
+                      >
+                        Update Password
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setShowPasswordForm(false);
+                          resetPasswordForm();
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </form>
+                )}
 
                 <div className="divider"></div>
 
@@ -292,10 +512,11 @@ const Settings = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    disabled
-                    className="opacity-50 text-error border-error"
+                    onClick={() => setShowAccountDeleteModal(true)}
+                    className="text-error border-error hover:bg-error/10"
+                    loading={isDeletingAccount}
                   >
-                    Coming Soon
+                    Delete Account
                   </Button>
                 </div>
               </div>
@@ -318,6 +539,7 @@ const Settings = () => {
               variant="primary"
               onClick={handleDeleteAllData}
               className="btn-error"
+              loading={isDeleting}
             >
               Delete Everything
             </Button>
@@ -343,20 +565,90 @@ const Settings = () => {
             <Button variant="ghost" onClick={() => setShowExportModal(false)}>
               Cancel
             </Button>
-            <Button variant="primary" onClick={handleExportData}>
+            <Button
+              variant="primary"
+              onClick={handleExportData}
+              loading={isExporting}
+            >
               Download CSV
             </Button>
           </>
         }
       >
-        <p>
-          This will download all your weight entries and goals as a CSV file.
-        </p>
-        <p className="text-sm text-base-content/70 mt-2">
-          You can use this to backup your data or import it into other
-          applications.
-        </p>
+        <div className="space-y-3">
+          <p>This will download your weight tracking data as CSV files:</p>
+          <ul className="list-disc list-inside space-y-1 text-sm">
+            <li>
+              <strong>Weight Entries:</strong> All your recorded weights with
+              dates and times
+            </li>
+            <li>
+              <strong>Goal History:</strong> Your completed goals with
+              achievement details (if any)
+            </li>
+          </ul>
+          <p className="text-sm text-base-content/70">
+            CSV files are compatible with Excel, Google Sheets, and other
+            fitness apps. Use them to backup your data or analyze your progress.
+          </p>
+        </div>
       </Modal>
+
+      {/* Account Deletion Modal */}
+      <Modal
+        isOpen={showAccountDeleteModal}
+        onClose={() => setShowAccountDeleteModal(false)}
+        title="Delete Account"
+        actions={
+          <>
+            <Button
+              variant="ghost"
+              onClick={() => setShowAccountDeleteModal(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleDeleteAccount}
+              className="btn-error"
+              loading={isDeletingAccount}
+            >
+              Delete Account
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-3">
+          <p className="font-semibold text-error">
+            This will permanently delete your entire account.
+          </p>
+          <ul className="list-disc list-inside space-y-1 text-sm">
+            <li>Your email and authentication credentials will be removed</li>
+            <li>All weight entries and goal history will be deleted</li>
+            <li>This action cannot be undone</li>
+            <li>
+              You will need to create a new account to use WeighPoint again
+            </li>
+          </ul>
+          <p className="text-sm text-base-content/70">
+            <strong>Are you sure you want to proceed?</strong> This is different
+            from deleting just your data - this removes your entire account.
+          </p>
+        </div>
+      </Modal>
+
+      {/* Toast Notifications */}
+      <div className="fixed top-4 right-4 z-50 space-y-2">
+        {toasts.map(toast => (
+          <Toast
+            key={toast.id}
+            message={toast.message}
+            type={toast.type}
+            duration={toast.duration}
+            onClose={toast.onClose}
+          />
+        ))}
+      </div>
     </div>
   );
 };

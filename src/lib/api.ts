@@ -205,4 +205,15 @@ export const api = {
       .eq('id', userId)
       .select()
       .single(),
+
+  /**
+   * Deletes user profile and all associated data via CASCADE constraints.
+   *
+   * Business Context: Complete data removal for user privacy and GDPR compliance.
+   * Database CASCADE constraints automatically handle deletion of entries and goals.
+   *
+   * Security: User ID validation ensures only profile owner can delete their data.
+   */
+  deleteProfile: (userId: string) =>
+    supabase.from('profiles').delete().eq('id', userId),
 };

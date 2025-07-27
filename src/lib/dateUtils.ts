@@ -35,6 +35,14 @@ export const formatDate = {
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   },
+
+  // h:mm a (e.g., "2:30 PM") for time-only display
+  timeOnly: (date: string | Date) =>
+    new Date(date).toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    }),
 };
 
 // Calculate difference in days between two dates

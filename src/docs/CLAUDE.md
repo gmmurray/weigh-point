@@ -670,47 +670,144 @@ const routes = [
 
 ## Code Style Guidelines
 
-### Commenting Philosophy: Perfect, Not Excessive
+### Commenting Philosophy: Comprehensive and Thoughtful (Level 7/10)
 
-**When to Comment:**
+WeighPoint uses **enhanced commenting** to ensure code maintainability, onboarding ease, and business logic clarity. Comments should explain the "why" and provide context that makes the codebase accessible to future developers.
 
-- Complex business logic that isn't immediately obvious
-- API integration points and external dependencies
-- Security-sensitive code sections
-- Non-obvious performance optimizations
-- Temporary workarounds with TODO/FIXME tags
+**Always Comment:**
 
-**When NOT to Comment:**
+- **Business logic and domain rules** - Why this logic exists and what business need it serves
+- **API integration points** - Expected responses, error handling, rate limits
+- **Security-sensitive code** - Authentication flows, data access patterns, validation rules
+- **Performance optimizations** - Why this approach was chosen over alternatives
+- **Complex calculations** - Mathematical operations, weight conversions, date handling
+- **Error handling strategies** - When/why certain errors are caught or ignored
+- **State management decisions** - Why certain data lives in component vs global state
+- **User experience considerations** - Accessibility choices, interaction patterns
+- **Data transformation logic** - Format changes, unit conversions, validation rules
+- **Component composition patterns** - How components work together, prop contracts
 
-- Self-explanatory function names and variable declarations
-- Standard React patterns (useState, useEffect, etc.)
-- Simple utility functions with clear single purposes
-- Obvious type definitions and interfaces
+**Strategically Comment:**
 
-**Comment Quality Standards:**
+- **Function purposes** - Brief JSDoc-style comments for non-trivial functions
+- **Hook dependencies** - Why certain values trigger re-runs
+- **Form validation logic** - Business rules behind field requirements
+- **Navigation patterns** - User flow considerations and redirect logic
+- **Conditional rendering** - When/why UI elements appear or hide
+- **Data fetching strategies** - Caching decisions, real-time vs polling
+
+**Still Avoid Commenting:**
+
+- Obvious variable assignments (`const isLoading = true`)
+- Standard library calls (`JSON.parse()`, `Math.round()`)
+- Simple JSX without logic
+
+**Enhanced Comment Quality Standards:**
 
 ```typescript
-// ❌ Excessive - the code is self-explanatory
+// ❌ Still too basic
 const weight = parseFloat(inputValue); // Parse input as float
 
-// ✅ Perfect - explains the business logic
+// ✅ Enhanced - explains business context and precision reasoning
 const weight = parseFloat(inputValue);
-// Round to 1 decimal place to match scale precision
+// Round to 1 decimal place to match digital scale precision and prevent
+// database storage issues with floating point arithmetic
 const roundedWeight = Math.round(weight * 10) / 10;
 
-// ❌ Excessive - React patterns don't need explanation
+// ❌ Missing business context
 useEffect(() => {
-  // Subscribe to real-time entries
   const subscription = supabase.channel('entries')...
-}, [user?.id]); // Re-run when user ID changes
+}, [user?.id]);
 
-// ✅ Perfect - explains the specific business context
+// ✅ Enhanced - explains user experience and technical decisions
 useEffect(() => {
-  // Auto-complete goals when new entries meet target weight
-  if (latestEntry && activeGoal && meetsGoalCriteria(latestEntry, activeGoal)) {
-    completeGoal(activeGoal.id, latestEntry.id);
+  // Real-time sync ensures immediate UI updates when user adds entries
+  // on other devices. Critical for multi-device weight tracking consistency.
+  // Filter by user_id prevents data leakage between anonymous sessions.
+  const subscription = supabase
+    .channel('entries')
+    .on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'entries',
+      filter: `user_id=eq.${user.id}`, // Enforce user data isolation
+    }, () => {
+      // Invalidate queries to trigger fresh data fetch
+      queryClient.invalidateQueries({ queryKey: ['entries'] });
+    })
+    .subscribe();
+
+  return () => subscription.unsubscribe();
+}, [user?.id]); // Re-subscribe when switching between guest/auth users
+
+// ✅ Enhanced - comprehensive business logic explanation
+const checkGoalCompletion = (entry: Entry, goal: Goal) => {
+  // Goals complete instantly when target weight is reached, using entry date
+  // (not processing date) to maintain accurate achievement timeline.
+  // This ensures users get immediate celebration feedback.
+  const isLossGoal = goal.target_weight < goal.start_weight;
+  const isGainGoal = goal.target_weight > goal.start_weight;
+
+  // Weight-loss goals complete when entry is <= target (or better)
+  // Weight-gain goals complete when entry is >= target (or better)
+  const goalMet = isLossGoal
+    ? entry.weight <= goal.target_weight
+    : entry.weight >= goal.target_weight;
+
+  if (goalMet) {
+    // Mark goal as completed with this specific entry for celebration UI
+    completeGoal(goal.id, entry.id);
   }
-}, [latestEntry, activeGoal]);
+};
+```
+
+**Function Documentation Standards:**
+
+```typescript
+/**
+ * Converts weight between units while preserving user's display preferences.
+ *
+ * @param weight - Raw weight value from database (always stored in user's preferred unit)
+ * @param fromUnit - Source unit ('lbs' | 'kg')
+ * @param toUnit - Target unit for display
+ * @returns Converted weight rounded to 1 decimal place for scale precision
+ *
+ * Business Context: Users can view data in different units without changing
+ * their stored preferences. Critical for international users switching contexts.
+ */
+export const convertWeight = (
+  weight: number,
+  fromUnit: Unit,
+  toUnit: Unit,
+): number => {
+  // Conversion handles both directions with standard medical conversion rates
+  if (fromUnit === toUnit) return weight;
+
+  // Use precise conversion: 1 kg = 2.20462 lbs (medical standard)
+  const lbsToKg = 0.453592;
+  const result = fromUnit === 'lbs' ? weight * lbsToKg : weight / lbsToKg;
+
+  // Round to 1 decimal to match scale precision and prevent UI layout shifts
+  return Math.round(result * 10) / 10;
+};
+```
+
+**Component Header Standards:**
+
+```typescript
+/**
+ * Settings page providing user account management and app preferences.
+ *
+ * Features:
+ * - Account identity display with upgrade prompts for guest users
+ * - Weight unit preferences (lbs/kg) with real-time form updates
+ * - Data management: export/import tools and bulk deletion
+ * - Security settings for authenticated users (password, account deletion)
+ *
+ * User Experience: Consolidated settings prevent UI fragmentation while
+ * maintaining clear sections for different user types (guest vs authenticated).
+ */
+const Settings = () => {
 ```
 
 ### Code Organization Principles
