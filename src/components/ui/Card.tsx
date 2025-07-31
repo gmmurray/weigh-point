@@ -12,7 +12,7 @@ export const Card = ({
   ...props
 }: CardProps) => {
   const classes = [
-    'card bg-base-100 shadow-xl',
+    'card card-border bg-base-100 shadow-xl',
     compact ? 'card-compact' : '',
     className,
   ]
