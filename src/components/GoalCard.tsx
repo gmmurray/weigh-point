@@ -13,6 +13,7 @@ import {
 import { useEntries } from '../hooks/useEntries';
 import { useAuth } from '../hooks/useAuth';
 import { CompletedGoalCard } from './CompletedGoalCard';
+import { FaCheckCircle, FaInfoCircle, FaTimesCircle } from 'react-icons/fa';
 
 export const GoalCard = () => {
   const { profile } = useAuth();
@@ -119,19 +120,7 @@ export const GoalCard = () => {
           <CardTitle>Set Your Goal</CardTitle>
           {!currentWeight ? (
             <div className="alert alert-info mb-4">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                className="stroke-current shrink-0 w-6 h-6"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                ></path>
-              </svg>
+              <FaInfoCircle className="shrink-0 w-6 h-6" />
               <div>
                 <h3 className="font-bold">Add an entry first</h3>
                 <div className="text-xs">
@@ -163,19 +152,7 @@ export const GoalCard = () => {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {setGoal.error && (
               <div className="alert alert-error">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="stroke-current shrink-0 h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
+                <FaTimesCircle className="shrink-0 h-6 w-6" />
                 <span>{setGoal.error.message}</span>
               </div>
             )}
@@ -321,9 +298,11 @@ export const GoalCard = () => {
                   isGoalReached ? 'text-success' : ''
                 }`}
               >
-                {isGoalReached && !isOverAchieved
-                  ? '🎉'
-                  : `${remainingWeight.toFixed(1)} ${unit}`}
+                {isGoalReached && !isOverAchieved ? (
+                  <FaCheckCircle className="text-success" />
+                ) : (
+                  `${remainingWeight.toFixed(1)} ${unit}`
+                )}
               </div>
             </div>
           </div>

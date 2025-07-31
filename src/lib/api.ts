@@ -207,6 +207,39 @@ export const api = {
       .single(),
 
   /**
+   * Resets user data by deleting entries and goals but keeping the profile.
+   *
+   * Business Context: Allows users to start fresh with their tracking while
+   * maintaining their account settings and preferences. Essential for users
+   * who want to begin a new tracking period without losing their account.
+   *
+   * Security: User ID validation ensures only data owner can reset their data.
+   */
+  resetUserData: async (userId: string) => {
+    // Delete all goals first (may reference entries)
+    const { error: goalsError } = await supabase
+      .from('goals')
+      .delete()
+      .eq('user_id', userId);
+
+    if (goalsError) {
+      throw new Error('Failed to delete goals');
+    }
+
+    // Delete all entries
+    const { error: entriesError } = await supabase
+      .from('entries')
+      .delete()
+      .eq('user_id', userId);
+
+    if (entriesError) {
+      throw new Error('Failed to delete entries');
+    }
+
+    return { data: null, error: null };
+  },
+
+  /**
    * Deletes user profile and all associated data via CASCADE constraints.
    *
    * Business Context: Complete data removal for user privacy and GDPR compliance.

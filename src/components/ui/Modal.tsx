@@ -1,4 +1,5 @@
 import { type ReactNode, useEffect, useRef } from 'react';
+import { FaTimes } from 'react-icons/fa';
 
 interface ModalProps {
   isOpen: boolean;
@@ -46,7 +47,7 @@ export const Modal = ({
             className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
             onClick={handleClose}
           >
-            ✕
+            <FaTimes />
           </button>
         </form>
       </div>

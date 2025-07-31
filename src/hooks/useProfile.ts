@@ -1,14 +1,14 @@
+import type { Profile, UpdateProfileInput } from '../types';
+import {
+  downloadCsv,
+  generateEntriesCsv,
+  generateGoalsCsv,
+} from '../lib/csvUtils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import type { UpdateProfileInput, Profile } from '../types';
 import { api } from '../lib/api';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './useAuth';
-import {
-  generateEntriesCsv,
-  generateGoalsCsv,
-  downloadCsv,
-} from '../lib/csvUtils';
 
 /**
  * Profile management hook providing mutation capabilities for user preferences.
@@ -94,6 +94,42 @@ export const useProfile = () => {
           context.previousProfile,
         );
       }
+    },
+  });
+
+  /**
+   * Resets user data by deleting entries and goals but keeping the profile.
+   *
+   * Business Context: Allows users to start fresh with tracking while maintaining
+   * their account settings and preferences. Common use case when starting a new
+   * tracking period or changing goals significantly.
+   *
+   * User Experience: Profile and preferences remain intact, so users don't need
+   * to reconfigure settings. Dashboard will show empty state after reset.
+   */
+  const resetData = useMutation<void, Error, void>({
+    mutationFn: async () => {
+      if (!profile?.id) {
+        throw new Error('No user profile available');
+      }
+
+      // Reset only entries and goals, keep profile
+      const result = await api.resetUserData(profile.id);
+
+      if (result.error) {
+        throw new Error(result.error || 'Failed to reset user data');
+      }
+    },
+
+    // Clear related cached data after successful reset
+    onSuccess: () => {
+      // Invalidate queries for entries and goals
+      queryClient.invalidateQueries({ queryKey: ['entries'] });
+      queryClient.invalidateQueries({ queryKey: ['activeGoal'] });
+      queryClient.invalidateQueries({ queryKey: ['completedGoals'] });
+
+      // Profile remains, so don't clear everything or redirect
+      // User stays on same page but sees empty data state
     },
   });
 
@@ -252,6 +288,7 @@ export const useProfile = () => {
 
   return {
     updateProfile,
+    resetData,
     deleteAllData,
     exportData,
     changePassword,
@@ -260,6 +297,7 @@ export const useProfile = () => {
     profile,
     // Loading states for UI feedback
     isUpdating: updateProfile.isPending,
+    isResetting: resetData.isPending,
     isDeleting: deleteAllData.isPending,
     isExporting: exportData.isPending,
     isChangingPassword: changePassword.isPending,

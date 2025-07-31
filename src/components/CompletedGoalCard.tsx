@@ -11,6 +11,7 @@ import { useSetGoal, useClearGoal } from '../hooks/useGoal';
 import { useAuth } from '../hooks/useAuth';
 import { goalSchema, type GoalFormData } from '../lib/validations';
 import type { Goal, Entry } from '../types';
+import { FaCheckCircle } from 'react-icons/fa';
 
 interface CompletedGoalCardProps {
   goal: Goal;
@@ -103,15 +104,15 @@ export const CompletedGoalCard = ({
       <Card compact className="border-l-4 border-l-success bg-success/5">
         {/* Compact Celebration Header */}
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <span className="text-2xl">🎉</span>
-            <div>
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <FaCheckCircle className="text-lg text-success" />
               <CardTitle className="text-lg text-success mb-0">
                 Goal Achieved!
               </CardTitle>
-              <div className="text-sm text-base-content/70">
-                {formatDate(goal.completed_at!)} • {daysToComplete} days
-              </div>
+            </div>
+            <div className="text-sm text-base-content/70">
+              {formatDate(goal.completed_at!)} • {daysToComplete} days
             </div>
           </div>
           <div className="text-right">

@@ -11,6 +11,7 @@ import { formatDate } from '../lib/dateUtils';
 import { Card, CardTitle } from './ui';
 import { useEntries } from '../hooks/useEntries';
 import { useAuth } from '../hooks/useAuth';
+import { FaChartBar } from 'react-icons/fa';
 import type { Entry } from '../types';
 
 interface ChartDataPoint {
@@ -42,7 +43,9 @@ export const WeightChart = () => {
         <CardTitle>Weight Journey</CardTitle>
         <div className="flex items-center justify-center h-64 text-base-content/70">
           <div className="text-center">
-            <div className="text-6xl mb-4">📊</div>
+            <div className="text-6xl mb-4">
+              <FaChartBar />
+            </div>
             <p>Your weight journey will appear here</p>
             <p className="text-sm">Add some entries to see your progress!</p>
           </div>

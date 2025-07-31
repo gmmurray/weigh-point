@@ -1,11 +1,12 @@
 import { Card, CardTitle } from '../components/ui';
 import { formatDate, getDaysDifference } from '../lib/dateUtils';
 
-import { AppHeader } from '../components/AppHeader';
+import { Layout } from '../components/Layout';
 import { GoalCard } from '../components/GoalCard';
 import type { GoalWithEntry } from '../types';
 import { useAuth } from '../hooks/useAuth';
 import { useCompletedGoals } from '../hooks/useGoal';
+import { FaBullseye, FaTrophy } from 'react-icons/fa';
 
 interface GoalTimelineItemProps {
   goal: GoalWithEntry;
@@ -43,7 +44,7 @@ const GoalTimelineItem = ({ goal, unit }: GoalTimelineItemProps) => {
         <div className="flex items-start justify-between mb-2">
           <div>
             <div className="font-semibold text-success flex items-center gap-2">
-              <span>🎯</span>
+              <FaBullseye className="text-lg" />
               Goal Achieved
             </div>
             <div className="text-sm text-base-content/70">
@@ -133,84 +134,76 @@ const GoalHistory = () => {
 
   if (isLoading || goalsLoading) {
     return (
-      <div className="min-h-screen bg-base-100">
-        <AppHeader showAddEntry />
-
-        <div className="container mx-auto px-4 max-w-4xl">
-          {/* Page Header */}
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold">Goals</h2>
-          </div>
-
-          <div className="skeleton h-32 w-full mb-6" />
-          <div className="skeleton h-8 w-48 mb-6" />
-          <div className="space-y-4">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="skeleton h-20 w-full" />
-            ))}
-          </div>
+      <Layout showAddEntry>
+        {/* Page Header */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold">Goals</h2>
         </div>
-      </div>
+
+        <div className="skeleton h-32 w-full mb-6" />
+        <div className="skeleton h-8 w-48 mb-6" />
+        <div className="space-y-4">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="skeleton h-20 w-full" />
+          ))}
+        </div>
+      </Layout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-base-100">
-      <AppHeader showAddEntry />
-
-      <div className="container mx-auto px-4 max-w-4xl">
-        {/* Page Header */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold">Goals</h2>
-          <p className="text-base-content/70">
-            Track your current goal and celebrate past achievements
-          </p>
-        </div>
-
-        <div className="space-y-8">
-          {/* Current Goal (or Goal Creation) */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <span>🎯</span>
-              Current Goal
-            </h3>
-            <GoalCard />
-          </div>
-
-          {/* Completed Goals Section */}
-          {completedGoals?.length > 0 && (
-            <>
-              {/* Achievement Stats */}
-              <AchievementStats completedGoals={completedGoals} unit={unit} />
-
-              {/* Achievement Timeline */}
-              <Card>
-                <CardTitle className="mb-6 flex items-center gap-2">
-                  <span>🏆</span>
-                  Achievement Timeline
-                </CardTitle>
-
-                <div className="space-y-0">
-                  {completedGoals.map(goal => (
-                    <GoalTimelineItem key={goal.id} goal={goal} unit={unit} />
-                  ))}
-                </div>
-              </Card>
-
-              {/* Motivational footer */}
-              <div className="text-center p-6 bg-success/5 rounded-lg border border-success/20">
-                <div className="text-success font-semibold mb-2">
-                  🎉 Every goal achieved is a victory worth celebrating!
-                </div>
-                <div className="text-sm text-base-content/70">
-                  Keep up the amazing progress on your health journey.
-                </div>
-              </div>
-            </>
-          )}
-        </div>
+    <Layout showAddEntry>
+      {/* Page Header */}
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold">Goals</h2>
+        <p className="text-base-content/70">
+          Track your current goal and celebrate past achievements
+        </p>
       </div>
-    </div>
+
+      <div className="space-y-8">
+        {/* Current Goal (or Goal Creation) */}
+        <div>
+          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <FaBullseye className="text-lg" />
+            Current Goal
+          </h3>
+          <GoalCard />
+        </div>
+
+        {/* Completed Goals Section */}
+        {completedGoals?.length > 0 && (
+          <>
+            {/* Achievement Stats */}
+            <AchievementStats completedGoals={completedGoals} unit={unit} />
+
+            {/* Achievement Timeline */}
+            <Card>
+              <CardTitle className="mb-6 flex items-center gap-2">
+                <FaTrophy className="text-lg" />
+                Achievement Timeline
+              </CardTitle>
+
+              <div className="space-y-0">
+                {completedGoals.map(goal => (
+                  <GoalTimelineItem key={goal.id} goal={goal} unit={unit} />
+                ))}
+              </div>
+            </Card>
+
+            {/* Motivational footer */}
+            <div className="text-center p-6 bg-success/5 rounded-lg border border-success/20">
+              <div className="text-success font-semibold mb-2">
+                🎉 Every goal achieved is a victory worth celebrating!
+              </div>
+              <div className="text-sm text-base-content/70">
+                Keep up the amazing progress on your health journey.
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </Layout>
   );
 };
 

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Button } from '../components/ui';
+import { FaChartBar, FaBullseye, FaLock } from 'react-icons/fa';
 
 export const Landing = () => {
   return (
@@ -20,21 +21,27 @@ export const Landing = () => {
         {/* Feature Highlights */}
         <div className="grid md:grid-cols-3 gap-8 mb-16">
           <div className="text-center p-6">
-            <div className="text-4xl mb-4">📊</div>
+            <div className="text-4xl mb-4">
+              <FaChartBar />
+            </div>
             <h3 className="text-lg font-semibold mb-2">Visual Progress</h3>
             <p className="text-sm text-base-content/70">
               Beautiful charts show your weight journey over time
             </p>
           </div>
           <div className="text-center p-6">
-            <div className="text-4xl mb-4">🎯</div>
+            <div className="text-4xl mb-4">
+              <FaBullseye />
+            </div>
             <h3 className="text-lg font-semibold mb-2">Goal Celebration</h3>
             <p className="text-sm text-base-content/70">
               Automatic goal completion with permanent achievement tracking
             </p>
           </div>
           <div className="text-center p-6">
-            <div className="text-4xl mb-4">🔒</div>
+            <div className="text-4xl mb-4">
+              <FaLock />
+            </div>
             <h3 className="text-lg font-semibold mb-2">Your Data</h3>
             <p className="text-sm text-base-content/70">
               Complete privacy with optional cloud sync across devices

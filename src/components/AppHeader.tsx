@@ -4,6 +4,15 @@ import { Link, useLocation } from 'react-router-dom';
 import { EntryForm } from './EntryForm';
 import { useAuth } from '../hooks/useAuth';
 import { useState } from 'react';
+import {
+  FaSignOutAlt,
+  FaUser,
+  FaInfoCircle,
+  FaCog,
+  FaBars,
+  FaTimes,
+  FaPlus,
+} from 'react-icons/fa';
 
 interface AppHeaderProps {
   showAddEntry?: boolean;
@@ -14,8 +23,9 @@ export const AppHeader = ({
   showAddEntry = false,
   customActions,
 }: AppHeaderProps) => {
-  const { profile, user, signOut, isAuthenticated } = useAuth();
+  const { profile, user, signOut } = useAuth();
   const [showEntryModal, setShowEntryModal] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
   const location = useLocation();
 
   const handleEntrySuccess = () => {
@@ -24,164 +34,180 @@ export const AppHeader = ({
 
   return (
     <>
-      <div className="container mx-auto px-4 py-6 max-w-4xl">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-8">
-            <Link to="/dashboard" className="flex items-center">
-              <div>
-                <h1 className="font-bold text-3xl">WeighPoint</h1>
-                <p className="text-sm text-base-content/60 -mt-1">
-                  Track your weight journey with precision
-                </p>
-              </div>
-            </Link>
-
-            {/* Navigation Links */}
-            <nav className="flex items-center gap-6">
-              <Link
-                to="/goals"
-                className={`text-sm font-medium hover:text-primary transition-colors ${
-                  location.pathname === '/goals'
-                    ? 'text-primary'
-                    : 'text-base-content/70'
-                }`}
-              >
-                Goals
+      <header className="border-b border-base-300 bg-base-100">
+        <div className="container mx-auto px-4 py-4 max-w-4xl">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-8">
+              <Link to="/dashboard" className="flex items-center">
+                <h1 className="font-bold text-2xl text-primary">WeighPoint</h1>
               </Link>
-              <Link
-                to="/entries"
-                className={`text-sm font-medium hover:text-primary transition-colors ${
-                  location.pathname === '/entries'
-                    ? 'text-primary'
-                    : 'text-base-content/70'
-                }`}
-              >
-                Entries
-              </Link>
-            </nav>
-          </div>
 
-          <div className="flex items-center gap-3">
-            {/* User Menu */}
-            <div className="dropdown dropdown-end">
-              <div
-                tabIndex={0}
-                role="button"
-                className={`w-8 h-8 rounded-full border flex items-center justify-center hover:opacity-80 cursor-pointer ${
-                  isAuthenticated
-                    ? 'bg-success/20 border-success/40'
-                    : 'bg-warning/20 border-warning/40'
-                }`}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  className={`w-4 h-4 ${
-                    isAuthenticated ? 'stroke-success' : 'stroke-warning'
+              {/* Navigation Links - Desktop */}
+              <nav className="hidden md:flex items-center gap-6">
+                <Link
+                  to="/goals"
+                  className={`px-3 py-2 rounded-lg text-sm font-medium hover:bg-base-200 transition-all ${
+                    location.pathname === '/goals'
+                      ? 'text-primary bg-primary/10 border border-primary/20'
+                      : 'text-base-content/70 hover:text-base-content'
                   }`}
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  />
-                </svg>
-              </div>
-              <ul
-                tabIndex={0}
-                className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow-lg border border-base-300"
-              >
-                <li className="menu-title">
-                  <span>{user?.email || 'Guest User'}</span>
-                </li>
-
-                {/* Guest users get Create Account option */}
-                {profile?.is_anonymous && (
-                  <>
-                    <li>
-                      <Link
-                        to="/auth/signup?redirect=/dashboard"
-                        className="text-warning"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          className="stroke-current w-4 h-4"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                          />
-                        </svg>
-                        Create Account
-                      </Link>
-                    </li>
-                    <div className="divider my-1"></div>
-                  </>
-                )}
-
-                <li>
-                  <Link to="/settings">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      className="stroke-current w-4 h-4"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                      />
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                      />
-                    </svg>
-                    Settings
-                  </Link>
-                </li>
-                <div className="divider my-1"></div>
-                <li>
-                  <button onClick={signOut} className="text-error">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      className="stroke-current w-4 h-4"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                      />
-                    </svg>
-                    Sign Out
-                  </button>
-                </li>
-              </ul>
+                  Goals
+                </Link>
+                <Link
+                  to="/entries"
+                  className={`px-3 py-2 rounded-lg text-sm font-medium hover:bg-base-200 transition-all ${
+                    location.pathname === '/entries'
+                      ? 'text-primary bg-primary/10 border border-primary/20'
+                      : 'text-base-content/70 hover:text-base-content'
+                  }`}
+                >
+                  Entries
+                </Link>
+              </nav>
             </div>
 
-            {customActions}
+            <div className="flex items-center gap-3">
+              {/* Mobile Menu Button */}
+              <button
+                className="md:hidden btn btn-ghost btn-sm"
+                onClick={() => setShowMobileMenu(!showMobileMenu)}
+                aria-label="Toggle mobile menu"
+              >
+                {showMobileMenu ? <FaTimes /> : <FaBars />}
+              </button>
 
-            {showAddEntry && (
-              <Button variant="primary" onClick={() => setShowEntryModal(true)}>
-                Add Entry
-              </Button>
-            )}
+              {/* User Menu */}
+              <div className="dropdown dropdown-end">
+                <div
+                  tabIndex={0}
+                  role="button"
+                  className="flex items-center gap-2 p-2 rounded-lg hover:bg-base-200 cursor-pointer transition-colors"
+                >
+                  <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center">
+                    <FaUser className="w-4 h-4 text-primary" />
+                  </div>
+                  <div className="hidden sm:block text-right">
+                    <div className="text-sm font-medium text-base-content">
+                      {profile?.is_anonymous
+                        ? 'Guest'
+                        : user?.email?.split('@')[0] || 'User'}
+                    </div>
+                    {!profile?.is_anonymous && (
+                      <div className="text-xs text-base-content/60">
+                        {user?.email}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <ul
+                  tabIndex={0}
+                  className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow-lg border border-base-300"
+                >
+                  <li className="menu-title">
+                    <span>{user?.email || 'Guest User'}</span>
+                  </li>
+
+                  {/* Guest users get Create Account option */}
+                  {profile?.is_anonymous && (
+                    <>
+                      <li>
+                        <Link
+                          to="/auth/signup?redirect=/dashboard"
+                          className="text-warning"
+                        >
+                          <FaInfoCircle className="w-4 h-4" />
+                          <div>
+                            <div>Create Account</div>
+                            <div className="text-xs text-base-content/60">
+                              Sync across devices
+                            </div>
+                          </div>
+                        </Link>
+                      </li>
+                      <div className="divider my-1"></div>
+                    </>
+                  )}
+
+                  <li>
+                    <Link to="/settings">
+                      <FaCog className="w-4 h-4" />
+                      Settings
+                    </Link>
+                  </li>
+                  {!profile?.is_anonymous && (
+                    <>
+                      <div className="divider my-1"></div>
+                      <li>
+                        <button onClick={signOut} className="text-error">
+                          <FaSignOutAlt className="w-4 h-4" />
+                          Sign Out
+                        </button>
+                      </li>
+                    </>
+                  )}
+                </ul>
+              </div>
+
+              {customActions}
+
+              {showAddEntry && (
+                <Button
+                  variant="primary"
+                  onClick={() => setShowEntryModal(true)}
+                  className="hidden md:flex shadow-lg hover:shadow-xl transition-shadow"
+                >
+                  + Add Entry
+                </Button>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+
+        {/* Mobile Navigation Menu */}
+        {showMobileMenu && (
+          <div className="border-t border-base-300">
+            <div className="container mx-auto px-4 py-4 max-w-4xl">
+              <nav className="flex flex-col gap-2">
+                <Link
+                  to="/goals"
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                    location.pathname === '/goals'
+                      ? 'text-primary bg-primary/10 border border-primary/20'
+                      : 'text-base-content/70 hover:text-base-content hover:bg-base-200'
+                  }`}
+                  onClick={() => setShowMobileMenu(false)}
+                >
+                  Goals
+                </Link>
+                <Link
+                  to="/entries"
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                    location.pathname === '/entries'
+                      ? 'text-primary bg-primary/10 border border-primary/20'
+                      : 'text-base-content/70 hover:text-base-content hover:bg-base-200'
+                  }`}
+                  onClick={() => setShowMobileMenu(false)}
+                >
+                  Entries
+                </Link>
+              </nav>
+            </div>
+          </div>
+        )}
+      </header>
+
+      {/* Floating Action Button - Mobile Only */}
+      {showAddEntry && (
+        <button
+          onClick={() => setShowEntryModal(true)}
+          className="md:hidden fixed bottom-6 right-6 z-50 w-14 h-14 bg-primary hover:bg-primary-focus text-primary-content rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center active:scale-95"
+          aria-label="Add Entry"
+        >
+          <FaPlus className="w-5 h-5" />
+        </button>
+      )}
 
       {/* Global Entry Modal */}
       <Modal
