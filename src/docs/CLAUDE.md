@@ -489,12 +489,12 @@ const routes = [
   {
     path: '/entries',
     component: Entries,
-    // All entries with smart search/filter + bulk actions
+    // All entries with simple filtering and individual management
     features: [
-      'All entries',
-      'Search by date range',
-      'Bulk delete',
-      'Export data',
+      'All entries with pagination',
+      'Simple date filtering (Last 30 days, 3 months, All time)',
+      'Individual entry management (edit, delete)',
+      'Link to Settings for bulk operations',
     ],
   },
   {
@@ -517,7 +517,7 @@ const routes = [
     features: [
       'Account identity & upgrade options',
       'Weight unit preferences',
-      'Data import/export (planned)',
+      'Data export (CSV download)',
       'Delete all data',
       'Account security (auth users)',
       'Guest mode explanation',
@@ -588,7 +588,7 @@ const routes = [
 
 - **User Identity Clarity**: Clear email/Guest User display in menus for debugging
 - **Account Upgrade Flow**: Seamless guest → authenticated user transition
-- **Data Management UI**: Import/Export placeholders ready for future implementation
+- **Data Management UI**: Export functionality with CSV download
 - **Security Settings**: Password/account deletion UI for authenticated users
 
 ### Security & Data Isolation ✅ **COMPLETED**
@@ -633,29 +633,23 @@ const routes = [
 - **Accessibility Enhancement**: Ensure universal usability without complexity
 - **Bug Prevention**: Robust error handling that maintains user trust
 
-### Settings Page Implementation Priorities 🎯 **NEXT**
+### Settings Page Implementation ✅ **COMPLETED**
 
-**Currently implemented UI scaffolding with TODO placeholders:**
+**Fully implemented bulk data management:**
 
 - ✅ **Account Section**: User identity display, guest upgrade prompts
-- ✅ **Preferences Section**: Weight unit selection (form ready, needs API integration)
-- ✅ **Data Management**: Import/Export UI (disabled, marked "Coming Soon")
-- ✅ **Security Section**: Password/account deletion (auth users only, disabled)
-- ✅ **Delete All Data**: Confirmation modal (needs API implementation)
+- ✅ **Preferences Section**: Weight unit selection with API integration
+- ✅ **Data Export**: Full CSV export for entries and goals with proper formatting
+- ✅ **Data Reset**: Clear entries/goals while preserving account and preferences
+- ✅ **Account Deletion**: Complete data and account removal for both guest and auth users
+- ✅ **Security Section**: Password change functionality for authenticated users
 
-**Implementation needed:**
-
-1. **Profile Update API**: Connect preferences form to `api.updateProfile()`
-2. **Data Export**: CSV generation for entries and goals
-3. **Data Import**: CSV parsing and validation
-4. **Delete All Data**: Cascade deletion of user's entries, goals, profile
-5. **Password Change**: Supabase auth integration
-6. **Account Deletion**: Complete user data removal
+**Implementation complete - no remaining features planned.**
 
 ### Essential Infrastructure Only
 
 - **Offline Functionality**: Core tracking works without internet
-- **Data Portability**: CSV export/import through Settings page
+- **Data Portability**: CSV export through Settings page
 - **Security Hardening**: Maintain complete user data isolation
 
 ### What We Will NOT Build
@@ -663,8 +657,8 @@ const routes = [
 - Complex analytics or reporting systems
 - Social features or sharing mechanisms
 - Notification systems or gamification
-- Bulk data management tools
-- Advanced filtering or search capabilities
+- Advanced filtering or search capabilities beyond basic date ranges
+- Complex bulk operations (simple bulk operations in Settings only)
 
 **Guiding Question**: Does this feature help users track weight and achieve goals more simply? If not, we don't build it.
 
@@ -801,7 +795,7 @@ export const convertWeight = (
  * Features:
  * - Account identity display with upgrade prompts for guest users
  * - Weight unit preferences (lbs/kg) with real-time form updates
- * - Data management: export/import tools and bulk deletion
+ * - Data management: export tools and bulk deletion
  * - Security settings for authenticated users (password, account deletion)
  *
  * User Experience: Consolidated settings prevent UI fragmentation while

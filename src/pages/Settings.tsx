@@ -41,7 +41,7 @@ type PasswordFormData = z.infer<typeof passwordSchema>;
  * Features:
  * - Account identity display with upgrade prompts for guest users
  * - Weight unit preferences (lbs/kg) with real-time form updates
- * - Data management: export/import tools and bulk deletion
+ * - Data management: export tools and bulk deletion
  * - Security settings for authenticated users (password, account deletion)
  *
  * User Experience: Consolidated settings prevent UI fragmentation while
@@ -339,33 +339,6 @@ const Settings = () => {
           </CardTitle>
 
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="font-medium">Import Data</div>
-                <div className="text-sm text-base-content/70">
-                  Import weight entries from CSV file
-                </div>
-              </div>
-              <label className="btn btn-outline btn-sm cursor-pointer">
-                <input
-                  type="file"
-                  accept=".csv"
-                  className="hidden"
-                  onChange={e => {
-                    // TODO: Implement CSV import functionality
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      error(
-                        'CSV import feature coming soon! Use export for now.',
-                      );
-                      e.target.value = ''; // Reset file input
-                    }
-                  }}
-                />
-                Import CSV
-              </label>
-            </div>
-
             <div className="flex items-center justify-between">
               <div>
                 <div className="font-medium">Export Data</div>
