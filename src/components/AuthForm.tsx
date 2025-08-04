@@ -45,7 +45,19 @@ export const AuthForm = ({
           : await signUpWithPassword(data.email, data.password);
 
       if (result.error) {
-        setError(result.error.message);
+        // Check if it's a connection error
+        const errorMessage = result.error.message;
+        if (
+          errorMessage.includes('fetch') ||
+          errorMessage.includes('network') ||
+          errorMessage.includes('connection')
+        ) {
+          setError(
+            'Unable to connect to authentication service. Please ensure the local server is running.',
+          );
+        } else {
+          setError(result.error.message);
+        }
         return;
       }
 
@@ -58,9 +70,20 @@ export const AuthForm = ({
       // Successful auth - redirect
       navigate(redirectTo, { replace: true });
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'An unexpected error occurred',
-      );
+      const errorMessage =
+        err instanceof Error ? err.message : 'An unexpected error occurred';
+      // Check if it's a connection error
+      if (
+        errorMessage.includes('fetch') ||
+        errorMessage.includes('network') ||
+        errorMessage.includes('connection')
+      ) {
+        setError(
+          'Unable to connect to authentication service. Please ensure the local server is running and try again.',
+        );
+      } else {
+        setError(errorMessage);
+      }
     }
   };
 
