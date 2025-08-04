@@ -495,10 +495,10 @@ const routes = [
       'Simple date filtering (All Time, Last 7/30 Days, 3 Months, This Year)',
       'Total entry count display with filter context',
       'Previous/Next navigation with loading states',
-      'Individual delete functionality',
+      'Individual entry editing with goal revalidation',
+      'Individual delete functionality with goal revalidation',
       'Smart page navigation (auto-adjust when deleting last item)',
       'Context-aware empty states for filtered results',
-      // TODO: Individual entry editing
       // TODO: Link to Settings for bulk operations
     ],
   },
@@ -672,11 +672,107 @@ const routes = [
 - ✅ **Context-Aware UI**: Different empty states for "no entries" vs "no entries in period"
 - ✅ **User-Friendly**: Simple dropdown instead of complex date range pickers
 
+**Entry Management System:**
+
+- ✅ **Full Entry Editing**: Modal-based editing of weight and date/time with validation
+- ✅ **Smart Goal Revalidation**: Automatic goal status updates when entries are edited/deleted
+- ✅ **Goal Integrity Protection**: Ensures goal completion accuracy despite retroactive entry changes
+- ✅ **User-Friendly Forms**: Auto-focus, unit display, datetime picker with helpful tips
+- ✅ **Real-time Updates**: Immediate UI refresh via query invalidation
+
 **Technical Implementation:**
 
-- ✅ **API Enhancement**: Updated getEntries() to support dateFrom/dateTo with backward compatibility
+- ✅ **API Enhancement**: Updated getEntries() to support dateFrom/dateTo and updateEntry() for full editing
 - ✅ **TypeScript Safety**: Full type safety with EntriesResult interface and proper error handling
 - ✅ **Reusable Utilities**: Created dateFilters.ts for consistent date range calculations
+- ✅ **Goal Revalidation Logic**: Comprehensive system for maintaining goal completion accuracy
+
+### Goal Integrity & Revalidation System
+
+**Business Context**: When users edit or delete entries after goal completion, the goal system must maintain accuracy. This ensures users' achievements remain trustworthy and timeline-accurate despite retroactive changes.
+
+**Revalidation Triggers:**
+
+- Entry is edited (weight or date changed)
+- Entry is deleted
+- Entry affects goal completion status
+
+**Revalidation Logic:**
+
+```typescript
+/**
+ * Goal Revalidation Algorithm
+ *
+ * When an entry is modified/deleted, check all goals that could be affected:
+ * 1. Find all goals that were completed by the modified/deleted entry
+ * 2. Find all goals that could potentially be affected by the weight change
+ * 3. For each affected goal, revalidate completion status
+ */
+
+// Step 1: Check if modified entry was a goal-completing entry
+const affectedGoals = completedGoals.filter(
+  goal => goal.completed_entry_id === modifiedEntry.id,
+);
+
+// Step 2: For each affected goal, revalidate completion
+for (const goal of affectedGoals) {
+  const eligibleEntries = entries.filter(entry => {
+    // Entry must be after goal creation
+    const entryDate = new Date(entry.recorded_at);
+    const goalDate = new Date(goal.created_at);
+    if (entryDate < goalDate) return false;
+
+    // Entry must meet goal criteria
+    const isLossGoal = goal.start_weight > goal.target_weight;
+    return isLossGoal
+      ? entry.weight <= goal.target_weight
+      : entry.weight >= goal.target_weight;
+  });
+
+  if (eligibleEntries.length === 0) {
+    // No valid completing entries - revert to active
+    await updateGoal(goal.id, {
+      status: 'active',
+      completed_at: null,
+      completed_entry_id: null,
+    });
+  } else {
+    // Find earliest valid completing entry
+    const earliestEntry = eligibleEntries.sort(
+      (a, b) => new Date(a.recorded_at) - new Date(b.recorded_at),
+    )[0];
+
+    // Update goal with correct completing entry
+    await updateGoal(goal.id, {
+      status: 'completed',
+      completed_at: earliestEntry.recorded_at,
+      completed_entry_id: earliestEntry.id,
+    });
+  }
+}
+```
+
+**Edge Cases Handled:**
+
+1. **Entry edited to no longer meet goal**: Goal reverted to active status
+2. **Entry date changed**: Goal completion date updated to reflect actual achievement timeline
+3. **Goal-completing entry deleted**: Goal reverted to active or reassigned to next valid entry
+4. **Multiple valid entries**: Always uses earliest qualifying entry for accurate timeline
+5. **Entry edited before goal creation**: Ignored (cannot retroactively complete goals)
+
+**User Experience:**
+
+- Changes happen transparently - no user intervention required
+- Goal history remains accurate and trustworthy
+- Achievement timeline reflects actual progress, not data entry artifacts
+- Completed goals may revert to active if supporting data is removed
+
+**Data Integrity Guarantees:**
+
+- Goal completion dates always match actual entry dates
+- No "phantom" goal completions from deleted/invalid entries
+- Chronological accuracy maintained across all goal transitions
+- Real-time UI updates reflect revalidation results immediately
 
 ### Essential Infrastructure Only
 

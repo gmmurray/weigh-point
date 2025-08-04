@@ -5,6 +5,7 @@ import { useEntries, useDeleteEntry } from '../hooks/useEntries';
 import { useAuth } from '../hooks/useAuth';
 import { formatDate as formatDateUtil } from '../lib/dateUtils';
 import { Button, Modal } from '../components/ui';
+import { EditEntryModal } from '../components/EditEntryModal';
 import {
   getDateFilterOptions,
   getDefaultDateFilter,
@@ -17,6 +18,7 @@ const ENTRIES_PER_PAGE = 20;
 const Entries = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [deleteModal, setDeleteModal] = useState<Entry | null>(null);
+  const [editModal, setEditModal] = useState<Entry | null>(null);
   const [dateFilter, setDateFilter] = useState<DateFilterOption>(
     getDefaultDateFilter(),
   );
@@ -151,15 +153,26 @@ const Entries = () => {
                       {formatDate(entry.recorded_at)}
                     </div>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setDeleteModal(entry)}
-                    className="text-error hover:bg-error/10"
-                    disabled={deleteEntry.isPending}
-                  >
-                    Delete
-                  </Button>
+
+                  <div className="flex gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setEditModal(entry)}
+                      className="text-primary hover:bg-primary/10"
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setDeleteModal(entry)}
+                      className="text-error hover:bg-error/10"
+                      disabled={deleteEntry.isPending}
+                    >
+                      Delete
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -204,6 +217,17 @@ const Entries = () => {
           This action cannot be undone.
         </p>
       </Modal>
+
+      {/* Edit Entry Modal */}
+      <EditEntryModal
+        entry={editModal}
+        isOpen={!!editModal}
+        onClose={() => setEditModal(null)}
+        onSuccess={() => {
+          // Modal will close automatically on success
+          // Data will refresh via react-query invalidation
+        }}
+      />
     </Layout>
   );
 };

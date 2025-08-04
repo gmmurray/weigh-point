@@ -6,6 +6,7 @@ import { api } from '../lib/api';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './useAuth';
 import { useEffect } from 'react';
+import { revalidateGoals } from '../lib/goalRevalidation';
 
 interface UseEntriesOptions {
   limit?: number;
@@ -139,13 +140,37 @@ export const useUpdateEntry = () => {
   const { profile } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ id, weight }: { id: string; weight: number }) => {
+    mutationFn: async ({
+      id,
+      weight,
+      recorded_at,
+    }: {
+      id: string;
+      weight: number;
+      recorded_at?: string;
+    }) => {
       if (!profile?.id) throw new Error('No user profile');
-      const result = await api.updateEntry(profile.id, id, weight);
-      return result.data;
+      const updates = { weight, ...(recorded_at && { recorded_at }) };
+      const result = await api.updateEntry(profile.id, id, updates);
+      return { updatedEntry: result.data, entryId: id };
     },
-    onSuccess: () => {
+    onSuccess: async ({ updatedEntry, entryId }) => {
+      // Invalidate queries first for immediate UI update
       queryClient.invalidateQueries({ queryKey: ['entries'] });
+      queryClient.invalidateQueries({ queryKey: ['activeGoal'] });
+      queryClient.invalidateQueries({ queryKey: ['completedGoals'] });
+
+      // Trigger goal revalidation in background
+      if (profile?.id && updatedEntry) {
+        try {
+          await revalidateGoals(profile.id, entryId, updatedEntry);
+          // Invalidate goal queries again after revalidation
+          queryClient.invalidateQueries({ queryKey: ['activeGoal'] });
+          queryClient.invalidateQueries({ queryKey: ['completedGoals'] });
+        } catch (error) {
+          console.error('Goal revalidation failed after entry update:', error);
+        }
+      }
     },
   });
 };
@@ -158,10 +183,28 @@ export const useDeleteEntry = () => {
     mutationFn: async (id: string) => {
       if (!profile?.id) throw new Error('No user profile');
       const result = await api.deleteEntry(profile.id, id);
-      return result.data;
+      return { result: result.data, deletedEntryId: id };
     },
-    onSuccess: () => {
+    onSuccess: async ({ deletedEntryId }) => {
+      // Invalidate queries first for immediate UI update
       queryClient.invalidateQueries({ queryKey: ['entries'] });
+      queryClient.invalidateQueries({ queryKey: ['activeGoal'] });
+      queryClient.invalidateQueries({ queryKey: ['completedGoals'] });
+
+      // Trigger goal revalidation in background
+      if (profile?.id) {
+        try {
+          await revalidateGoals(profile.id, deletedEntryId, null);
+          // Invalidate goal queries again after revalidation
+          queryClient.invalidateQueries({ queryKey: ['activeGoal'] });
+          queryClient.invalidateQueries({ queryKey: ['completedGoals'] });
+        } catch (error) {
+          console.error(
+            'Goal revalidation failed after entry deletion:',
+            error,
+          );
+        }
+      }
     },
   });
 };

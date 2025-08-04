@@ -147,10 +147,14 @@ export const api = {
       .select()
       .single(),
 
-  updateEntry: (userId: string, id: string, weight: number) =>
+  updateEntry: (
+    userId: string,
+    id: string,
+    updates: { weight: number; recorded_at?: string },
+  ) =>
     supabase
       .from('entries')
-      .update({ weight })
+      .update(updates)
       .eq('id', id)
       .eq('user_id', userId)
       .select()
@@ -237,6 +241,34 @@ export const api = {
 
   clearGoal: (userId: string, goalId: string) =>
     supabase.from('goals').delete().eq('id', goalId).eq('user_id', userId),
+
+  // Goal revalidation functions
+  revertGoalToActive: (userId: string, goalId: string) =>
+    supabase
+      .from('goals')
+      .update({
+        status: 'active',
+        completed_at: null,
+        completed_entry_id: null,
+      })
+      .eq('id', goalId)
+      .eq('user_id', userId),
+
+  updateGoalCompletion: (
+    userId: string,
+    goalId: string,
+    entryId: string,
+    completedAt: string,
+  ) =>
+    supabase
+      .from('goals')
+      .update({
+        status: 'completed',
+        completed_at: completedAt,
+        completed_entry_id: entryId,
+      })
+      .eq('id', goalId)
+      .eq('user_id', userId),
 
   // Profile
   getProfile: (userId: string) =>
