@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-A thoughtfully minimal AND goal-focused React TypeScript PWA for personal weight tracking. Clean, fast, beautifully designed app that celebrates every milestone on your health journey. Each entry is a waypoint, each goal is a destination worth celebrating.
+A thoughtfully minimal AND goal-focused React TypeScript PWA for personal weight tracking. Clean, fast, beautifully designed app that celebrates every milestone on your health journey. Each weight entry marks progress, each goal is a destination worth celebrating.
 
 **Core Philosophy:**
 
@@ -21,7 +21,7 @@ Weight loss and fitness journeys are deeply personal and often challenging. Weig
 **Automatic Goal Completion:**
 Unlike traditional tracking apps where achievements feel temporary, WeighPoint automatically completes goals the moment your weight entry reaches the target. This creates permanent milestones tied to specific entries, ensuring your success is always recognized and celebrated.
 
-Each entry is a waypoint on your health journey. Minimalism as a feature, not a limitation.
+Each entry marks progress on your health journey. Minimalism as a feature, not a limitation.
 
 ## Tech Stack
 
@@ -50,14 +50,14 @@ src/
 │   └── useAuth.ts           # Auth hook
 ├── components/
 │   ├── ui/                  # Base components (Button, Input, etc)
-│   ├── EntryForm.tsx        # Add/edit entry waypoint
+│   ├── EntryForm.tsx        # Add/edit weight entry
 │   ├── WeightChart.tsx      # Journey visualization
-│   ├── GoalCard.tsx         # Destination display
-│   └── EntryList.tsx        # Recent waypoints
+│   ├── GoalCard.tsx         # Goal display
+│   └── EntryList.tsx        # Recent entries
 ├── pages/
 │   ├── Dashboard.tsx        # Main view - your journey
 │   ├── GoalHistory.tsx      # Achievement timeline
-│   ├── Entries.tsx          # All waypoints
+│   ├── Entries.tsx          # All entries
 │   ├── Settings.tsx         # User management & preferences
 │   ├── SignIn.tsx           # Authentication
 │   ├── SignUp.tsx           # Account creation
@@ -198,7 +198,7 @@ export const api = {
       })
       .eq('id', anonId),
 
-  // Entries with smart defaults
+  // Weight entries with smart defaults
   getEntries: (limit?: number) =>
     supabase
       .from('entries')
@@ -453,11 +453,11 @@ WeighPoint transforms goal achievement from a fleeting moment into a lasting cel
 ```typescript
 // Day 1: Anonymous user
 1. Open WeighPoint → Immediately usable
-2. Add first waypoint → See instant journey visualization
-3. Continue tracking → Waypoints build up locally
+2. Add first entry → See instant journey visualization
+3. Continue tracking → Entries build up locally
 
 // Later: Wants cross-device sync
-4. "Sign up to sync waypoints" → Preserves all data
+4. "Sign up to sync entries" → Preserves all data
 5. Login on phone → Same journey appears
 6. Continues seamless experience
 
@@ -480,18 +480,18 @@ const routes = [
     // Weight chart + quick add + goal celebration + recent waypoints + navigation
     features: [
       'Journey chart',
-      'Quick waypoint entry',
+      'Quick entry addition',
       'Goal celebration system',
-      'Recent 5 waypoints',
+      'Recent 5 entries',
       'Achievement count link to history',
     ],
   },
   {
-    path: '/history',
-    component: History,
-    // All waypoints with smart search/filter + bulk actions
+    path: '/entries',
+    component: Entries,
+    // All entries with smart search/filter + bulk actions
     features: [
-      'All waypoints',
+      'All entries',
       'Search by date range',
       'Bulk delete',
       'Export data',
