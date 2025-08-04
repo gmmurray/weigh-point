@@ -19,8 +19,10 @@ export const EntryList = ({
   showViewAll = false,
 }: EntryListProps) => {
   const { profile } = useAuth();
-  const { data: entries, isLoading } = useEntries(limit);
+  const { data, isLoading } = useEntries({ limit });
   const deleteEntry = useDeleteEntry();
+
+  const entries = data?.entries || [];
   const [deleteModal, setDeleteModal] = useState<Entry | null>(null);
 
   const formatWeight = (weight: number) => {

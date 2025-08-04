@@ -2,7 +2,7 @@ import { Card } from './ui';
 import { useEntries } from '../hooks/useEntries';
 
 export const SummaryStatsCard = () => {
-  const { data: entries, isLoading } = useEntries();
+  const { data, isLoading } = useEntries();
 
   if (isLoading) {
     return (
@@ -21,11 +21,12 @@ export const SummaryStatsCard = () => {
     );
   }
 
-  const totalEntries = entries?.length || 0;
+  const entries = data?.entries || [];
+  const totalEntries = entries.length;
 
   // Calculate days tracked (unique dates)
   const uniqueDates = new Set(
-    entries?.map(entry => entry.recorded_at.split('T')[0]) || [],
+    entries.map(entry => entry.recorded_at.split('T')[0]),
   );
   const daysTracked = uniqueDates.size;
 

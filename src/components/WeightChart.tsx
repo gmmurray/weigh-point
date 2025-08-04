@@ -26,7 +26,7 @@ interface TooltipPayload {
 
 export const WeightChart = () => {
   const { profile } = useAuth();
-  const { data: entries, isLoading } = useEntries(50); // Get more entries for chart
+  const { data, isLoading } = useEntries(50); // Get more entries for chart
 
   if (isLoading) {
     return (
@@ -37,7 +37,8 @@ export const WeightChart = () => {
     );
   }
 
-  if (!entries?.length) {
+  const entries = data?.entries || [];
+  if (!entries.length) {
     return (
       <Card>
         <CardTitle>Weight Journey</CardTitle>

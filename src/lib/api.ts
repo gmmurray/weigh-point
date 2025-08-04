@@ -83,14 +83,58 @@ export const api = {
       .single();
   },
 
-  // Entries with smart defaults
-  getEntries: (userId: string, limit?: number) =>
-    supabase
-      .from('entries')
-      .select('*')
-      .eq('user_id', userId)
+  // Entries with smart defaults, pagination, and date filtering
+  getEntries: (
+    userId: string,
+    options?: {
+      limit?: number;
+      offset?: number;
+      dateFrom?: string;
+      dateTo?: string;
+    },
+  ) => {
+    const { limit = 100, offset = 0, dateFrom, dateTo } = options || {};
+
+    let query = supabase.from('entries').select('*').eq('user_id', userId);
+
+    // Add date filtering if provided
+    if (dateFrom) {
+      query = query.gte('recorded_at', dateFrom);
+    }
+    if (dateTo) {
+      query = query.lte('recorded_at', dateTo);
+    }
+
+    return query
       .order('recorded_at', { ascending: false })
-      .limit(limit || 100),
+      .range(offset, offset + limit - 1);
+  },
+
+  // Get total count of entries for pagination with date filtering
+  getEntriesCount: (
+    userId: string,
+    options?: {
+      dateFrom?: string;
+      dateTo?: string;
+    },
+  ) => {
+    const { dateFrom, dateTo } = options || {};
+
+    let query = supabase
+      .from('entries')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId);
+
+    // Add same date filtering for count
+    if (dateFrom) {
+      query = query.gte('recorded_at', dateFrom);
+    }
+    if (dateTo) {
+      query = query.lte('recorded_at', dateTo);
+    }
+
+    return query;
+  },
 
   createEntry: (userId: string, entry: CreateEntryInput) =>
     supabase

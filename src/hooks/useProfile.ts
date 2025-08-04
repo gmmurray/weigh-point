@@ -188,7 +188,7 @@ export const useProfile = () => {
 
       // Fetch all user data for export
       const [entriesResult, goalsResult] = await Promise.all([
-        api.getEntries(profile.id, 1000), // Get large number of entries
+        api.getEntries(profile.id, { limit: 1000 }), // Get large number of entries
         api.getCompletedGoals(profile.id),
       ]);
 

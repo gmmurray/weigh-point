@@ -5,10 +5,10 @@ import { useEntries } from '../hooks/useEntries';
 
 export const RecentEntryCard = () => {
   const { profile } = useAuth();
-  const { data: entries, isLoading } = useEntries(1);
+  const { data, isLoading } = useEntries(1);
 
   const unit = profile?.preferred_unit || 'lbs';
-  const latestEntry = entries?.[0];
+  const latestEntry = data?.entries?.[0];
 
   if (isLoading) {
     return (

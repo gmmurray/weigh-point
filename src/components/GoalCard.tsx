@@ -19,14 +19,14 @@ export const GoalCard = () => {
   const { profile } = useAuth();
   const { data: goal, isLoading: goalLoading } = useActiveGoal();
   const { data: completedGoals } = useCompletedGoals();
-  const { data: entries } = useEntries(1); // Get latest entry for current weight
+  const { data } = useEntries(1); // Get latest entry for current weight
   const setGoal = useSetGoal();
   const clearGoal = useClearGoal();
 
   const [showGoalModal, setShowGoalModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  const currentWeight = entries?.[0]?.weight;
+  const currentWeight = data?.entries?.[0]?.weight;
   const unit = profile?.preferred_unit || 'lbs';
 
   const {

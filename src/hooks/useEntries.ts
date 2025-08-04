@@ -7,9 +7,34 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from './useAuth';
 import { useEffect } from 'react';
 
-export const useEntries = (limit?: number) => {
+interface UseEntriesOptions {
+  limit?: number;
+  offset?: number;
+  includeCount?: boolean;
+  dateFrom?: string;
+  dateTo?: string;
+}
+
+interface EntriesResult {
+  entries: Entry[];
+  totalCount?: number | null;
+}
+
+export const useEntries = (options?: UseEntriesOptions | number) => {
   const queryClient = useQueryClient();
   const { profile } = useAuth();
+
+  // Handle backward compatibility - if number passed, treat as limit
+  const normalizedOptions: UseEntriesOptions =
+    typeof options === 'number' ? { limit: options } : options || {};
+
+  const {
+    limit = 100,
+    offset = 0,
+    includeCount = false,
+    dateFrom,
+    dateTo,
+  } = normalizedOptions;
 
   // Subscribe to real-time changes
   useEffect(() => {
@@ -34,12 +59,36 @@ export const useEntries = (limit?: number) => {
     return () => subscription.unsubscribe();
   }, [profile, profile?.id, queryClient]);
 
-  return useQuery<Entry[]>({
-    queryKey: ['entries', profile?.id, limit],
+  return useQuery<EntriesResult>({
+    queryKey: [
+      'entries',
+      profile?.id,
+      limit,
+      offset,
+      includeCount,
+      dateFrom,
+      dateTo,
+    ],
     queryFn: async () => {
-      if (!profile?.id) return [];
-      const result = await api.getEntries(profile.id, limit);
-      return result.data || [];
+      if (!profile?.id) return { entries: [] };
+
+      // Fetch entries and optionally count in parallel
+      const promises = [
+        api.getEntries(profile.id, { limit, offset, dateFrom, dateTo }),
+      ];
+
+      if (includeCount) {
+        promises.push(api.getEntriesCount(profile.id, { dateFrom, dateTo }));
+      }
+
+      const results = await Promise.all(promises);
+      const entriesResult = results[0];
+      const countResult = results[1] as (typeof results)[0] | undefined;
+
+      return {
+        entries: entriesResult.data || [],
+        totalCount: includeCount ? (countResult?.count ?? null) : undefined,
+      };
     },
     enabled: !!profile?.id,
   });
