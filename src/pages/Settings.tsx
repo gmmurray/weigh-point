@@ -1,20 +1,20 @@
 import { Button, Card, CardTitle, Modal, Toast } from '../components/ui';
+import {
+  FaChartBar,
+  FaCog,
+  FaInfoCircle,
+  FaLock,
+  FaUser,
+} from 'react-icons/fa';
 
 import { Layout } from '../components/Layout';
 import { Link } from 'react-router-dom';
 import { formatDate } from '../lib/dateUtils';
 import { useAuth } from '../hooks/useAuth';
-import { useProfile } from '../hooks/useProfile';
-import { useToast } from '../hooks/useToast';
 import { useForm } from 'react-hook-form';
+import { useProfile } from '../hooks/useProfile';
 import { useState } from 'react';
-import {
-  FaUser,
-  FaCog,
-  FaChartBar,
-  FaLock,
-  FaInfoCircle,
-} from 'react-icons/fa';
+import { useToast } from '../hooks/useToast';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 
@@ -228,7 +228,7 @@ const Settings = () => {
     : 'Unknown';
 
   return (
-    <Layout maxWidth="2xl">
+    <Layout maxWidth="4xl">
       {/* Page Header */}
       <div className="mb-8">
         <h2 className="text-2xl font-bold">Settings</h2>

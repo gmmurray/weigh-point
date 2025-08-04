@@ -1,18 +1,18 @@
 import { Button, Modal } from './ui';
+import {
+  FaBars,
+  FaCog,
+  FaInfoCircle,
+  FaPlus,
+  FaSignOutAlt,
+  FaTimes,
+  FaUser,
+} from 'react-icons/fa';
 import { Link, useLocation } from 'react-router-dom';
 
 import { EntryForm } from './EntryForm';
 import { useAuth } from '../hooks/useAuth';
 import { useState } from 'react';
-import {
-  FaSignOutAlt,
-  FaUser,
-  FaInfoCircle,
-  FaCog,
-  FaBars,
-  FaTimes,
-  FaPlus,
-} from 'react-icons/fa';
 
 interface AppHeaderProps {
   showAddEntry?: boolean;
@@ -85,20 +85,15 @@ export const AppHeader = ({
                   role="button"
                   className="flex items-center gap-2 p-2 rounded-lg hover:bg-base-200 cursor-pointer transition-colors"
                 >
-                  <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center">
-                    <FaUser className="w-4 h-4 text-primary" />
-                  </div>
-                  <div className="hidden sm:block text-right">
+                  <div className="hidden sm:block text-left">
                     <div className="text-sm font-medium text-base-content">
                       {profile?.is_anonymous
                         ? 'Guest'
                         : user?.email?.split('@')[0] || 'User'}
                     </div>
-                    {!profile?.is_anonymous && (
-                      <div className="text-xs text-base-content/60">
-                        {user?.email}
-                      </div>
-                    )}
+                  </div>
+                  <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center">
+                    <FaUser className="w-4 h-4 text-primary" />
                   </div>
                 </div>
                 <ul
