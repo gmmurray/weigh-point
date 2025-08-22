@@ -1,6 +1,6 @@
+import type { CreateGoalInput, Goal, GoalWithEntry } from '../types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import type { CreateGoalInput, Goal, GoalWithEntry } from '../types';
 import { api } from '../lib/api';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './useAuth';
@@ -15,13 +15,13 @@ export const useActiveGoal = () => {
     if (!profile) return () => {};
 
     const subscription = supabase
-      .channel('goals')
+      .channel('wp_goals')
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'goals',
+          table: 'wp_goals',
           filter: `user_id=eq.${profile.id}`,
         },
         () => {

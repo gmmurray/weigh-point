@@ -124,7 +124,7 @@ export const useAuth = () => {
         if (storedAnonId && !session) {
           // Verify the anonymous profile still exists
           const { data, error } = await supabase
-            .from('profiles')
+            .from('wp_profiles')
             .select('*')
             .eq('id', storedAnonId)
             .eq('is_anonymous', true)

@@ -11,7 +11,7 @@ export const api = {
   createAnonProfile: () => {
     const id = crypto.randomUUID();
     return supabase
-      .from('profiles')
+      .from('wp_profiles')
       .insert({
         id,
         is_anonymous: true,
@@ -29,7 +29,7 @@ export const api = {
 
     // 1. Create authenticated profile with auth user ID
     const { data: authProfile, error: profileError } = await supabase
-      .from('profiles')
+      .from('wp_profiles')
       .insert({
         id: user.user.id,
         is_anonymous: false,
@@ -41,7 +41,7 @@ export const api = {
 
     // 2. Transfer entries from anonymous to authenticated profile
     const { error: entriesError } = await supabase
-      .from('entries')
+      .from('wp_entries')
       .update({ user_id: user.user.id })
       .eq('user_id', anonId);
 
@@ -51,7 +51,7 @@ export const api = {
 
     // 3. Transfer goals from anonymous to authenticated profile
     const { error: goalsError } = await supabase
-      .from('goals')
+      .from('wp_goals')
       .update({ user_id: user.user.id })
       .eq('user_id', anonId);
 
@@ -61,7 +61,7 @@ export const api = {
 
     // 4. Delete the old anonymous profile
     const { error: deleteError } = await supabase
-      .from('profiles')
+      .from('wp_profiles')
       .delete()
       .eq('id', anonId);
 
@@ -74,7 +74,7 @@ export const api = {
 
   createAuthProfile: async (userId: string) => {
     return supabase
-      .from('profiles')
+      .from('wp_profiles')
       .insert({
         id: userId,
         is_anonymous: false,
@@ -95,7 +95,7 @@ export const api = {
   ) => {
     const { limit = 100, offset = 0, dateFrom, dateTo } = options || {};
 
-    let query = supabase.from('entries').select('*').eq('user_id', userId);
+    let query = supabase.from('wp_entries').select('*').eq('user_id', userId);
 
     // Add date filtering if provided
     if (dateFrom) {
@@ -121,7 +121,7 @@ export const api = {
     const { dateFrom, dateTo } = options || {};
 
     let query = supabase
-      .from('entries')
+      .from('wp_entries')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId);
 
@@ -138,7 +138,7 @@ export const api = {
 
   createEntry: (userId: string, entry: CreateEntryInput) =>
     supabase
-      .from('entries')
+      .from('wp_entries')
       .insert({
         ...entry,
         user_id: userId,
@@ -153,7 +153,7 @@ export const api = {
     updates: { weight: number; recorded_at?: string },
   ) =>
     supabase
-      .from('entries')
+      .from('wp_entries')
       .update(updates)
       .eq('id', id)
       .eq('user_id', userId)
@@ -161,12 +161,12 @@ export const api = {
       .single(),
 
   deleteEntry: (userId: string, id: string) =>
-    supabase.from('entries').delete().eq('id', id).eq('user_id', userId),
+    supabase.from('wp_entries').delete().eq('id', id).eq('user_id', userId),
 
   // Goal management with celebration focus
   getActiveGoal: (userId: string) =>
     supabase
-      .from('goals')
+      .from('wp_goals')
       .select('*')
       .eq('user_id', userId)
       .eq('status', 'active')
@@ -174,7 +174,7 @@ export const api = {
 
   getCompletedGoals: (userId: string) =>
     supabase
-      .from('goals')
+      .from('wp_goals')
       .select(
         `
         *,
@@ -188,7 +188,7 @@ export const api = {
   setGoal: async (userId: string, goal: CreateGoalInput) => {
     // Get the user's latest entry for start_weight
     const { data: entries } = await supabase
-      .from('entries')
+      .from('wp_entries')
       .select('weight')
       .eq('user_id', userId)
       .order('recorded_at', { ascending: false })
@@ -210,7 +210,7 @@ export const api = {
     }
 
     return supabase
-      .from('goals')
+      .from('wp_goals')
       .insert({
         ...goal,
         user_id: userId,
@@ -228,7 +228,7 @@ export const api = {
     completedAt: string,
   ) =>
     supabase
-      .from('goals')
+      .from('wp_goals')
       .update({
         status: 'completed',
         completed_at: completedAt,
@@ -240,12 +240,12 @@ export const api = {
       .single(),
 
   clearGoal: (userId: string, goalId: string) =>
-    supabase.from('goals').delete().eq('id', goalId).eq('user_id', userId),
+    supabase.from('wp_goals').delete().eq('id', goalId).eq('user_id', userId),
 
   // Goal revalidation functions
   revertGoalToActive: (userId: string, goalId: string) =>
     supabase
-      .from('goals')
+      .from('wp_goals')
       .update({
         status: 'active',
         completed_at: null,
@@ -261,7 +261,7 @@ export const api = {
     completedAt: string,
   ) =>
     supabase
-      .from('goals')
+      .from('wp_goals')
       .update({
         status: 'completed',
         completed_at: completedAt,
@@ -272,11 +272,11 @@ export const api = {
 
   // Profile
   getProfile: (userId: string) =>
-    supabase.from('profiles').select('*').eq('id', userId).single(),
+    supabase.from('wp_profiles').select('*').eq('id', userId).single(),
 
   updateProfile: (userId: string, updates: UpdateProfileInput) =>
     supabase
-      .from('profiles')
+      .from('wp_profiles')
       .update(updates)
       .eq('id', userId)
       .select()
@@ -294,7 +294,7 @@ export const api = {
   resetUserData: async (userId: string) => {
     // Delete all goals first (may reference entries)
     const { error: goalsError } = await supabase
-      .from('goals')
+      .from('wp_goals')
       .delete()
       .eq('user_id', userId);
 
@@ -304,7 +304,7 @@ export const api = {
 
     // Delete all entries
     const { error: entriesError } = await supabase
-      .from('entries')
+      .from('wp_entries')
       .delete()
       .eq('user_id', userId);
 
@@ -324,5 +324,5 @@ export const api = {
    * Security: User ID validation ensures only profile owner can delete their data.
    */
   deleteProfile: (userId: string) =>
-    supabase.from('profiles').delete().eq('id', userId),
+    supabase.from('wp_profiles').delete().eq('id', userId),
 };

@@ -1,5 +1,5 @@
 -- User profiles (supports both auth and anon users)
-CREATE TABLE profiles (
+CREATE TABLE wp_profiles (
   id UUID PRIMARY KEY, -- Can be auth.users(id) or generated for anon
   is_anonymous BOOLEAN DEFAULT false,
   preferred_unit TEXT DEFAULT 'lbs' CHECK (preferred_unit IN ('lbs', 'kg')),
@@ -8,18 +8,18 @@ CREATE TABLE profiles (
 );
 
 -- Weight entries
-CREATE TABLE entries (
+CREATE TABLE wp_entries (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES wp_profiles(id) ON DELETE CASCADE,
   weight DECIMAL(6,2) NOT NULL,
   recorded_at TIMESTAMPTZ NOT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Single goal per user
-CREATE TABLE goals (
+CREATE TABLE wp_goals (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES wp_profiles(id) ON DELETE CASCADE,
   start_weight DECIMAL(6,2) NOT NULL,
   target_weight DECIMAL(6,2) NOT NULL,
   target_date DATE,
@@ -29,34 +29,34 @@ CREATE TABLE goals (
 );
 
 -- Enable RLS
-ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE entries ENABLE ROW LEVEL SECURITY;
-ALTER TABLE goals ENABLE ROW LEVEL SECURITY;
+ALTER TABLE wp_profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE wp_entries ENABLE ROW LEVEL SECURITY;
+ALTER TABLE wp_goals ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies
-CREATE POLICY "Users can access own profile" ON profiles FOR ALL USING (
+CREATE POLICY "Users can access own profile" ON wp_profiles FOR ALL USING (
   (auth.uid() IS NOT NULL AND auth.uid() = id) OR
   (auth.uid() IS NULL AND is_anonymous = true)
 );
 
-CREATE POLICY "Users can access own entries" ON entries FOR ALL USING (
+CREATE POLICY "Users can access own entries" ON wp_entries FOR ALL USING (
   EXISTS (
-    SELECT 1 FROM profiles
-    WHERE profiles.id = entries.user_id
-    AND ((auth.uid() IS NOT NULL AND auth.uid() = profiles.id) OR
-         (auth.uid() IS NULL AND profiles.is_anonymous = true))
+    SELECT 1 FROM wp_profiles
+    WHERE wp_profiles.id = wp_entries.user_id
+    AND ((auth.uid() IS NOT NULL AND auth.uid() = wp_profiles.id) OR
+         (auth.uid() IS NULL AND wp_profiles.is_anonymous = true))
   )
 );
 
-CREATE POLICY "Users can access own goals" ON goals FOR ALL USING (
+CREATE POLICY "Users can access own goals" ON wp_goals FOR ALL USING (
   EXISTS (
-    SELECT 1 FROM profiles
-    WHERE profiles.id = goals.user_id
-    AND ((auth.uid() IS NOT NULL AND auth.uid() = profiles.id) OR
-         (auth.uid() IS NULL AND profiles.is_anonymous = true))
+    SELECT 1 FROM wp_profiles
+    WHERE wp_profiles.id = wp_goals.user_id
+    AND ((auth.uid() IS NOT NULL AND auth.uid() = wp_profiles.id) OR
+         (auth.uid() IS NULL AND wp_profiles.is_anonymous = true))
   )
 );
 
 -- Indexes for performance
-CREATE INDEX idx_entries_user_id_recorded_at ON entries(user_id, recorded_at DESC);
-CREATE INDEX idx_profiles_is_anonymous ON profiles(is_anonymous) WHERE is_anonymous = true;
+CREATE INDEX idx_entries_user_id_recorded_at ON wp_entries(user_id, recorded_at DESC);
+CREATE INDEX idx_profiles_is_anonymous ON wp_profiles(is_anonymous) WHERE is_anonymous = true;

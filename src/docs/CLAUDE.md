@@ -181,7 +181,7 @@ export const api = {
   // Auth & Profile
   createAnonProfile: () =>
     supabase
-      .from('profiles')
+      .from('wp_profiles')
       .insert({
         id: crypto.randomUUID(),
         is_anonymous: true,
@@ -191,7 +191,7 @@ export const api = {
 
   linkAnonToAuth: (anonId: string) =>
     supabase
-      .from('profiles')
+      .from('wp_profiles')
       .update({
         id: (await supabase.auth.getUser()).data.user!.id,
         is_anonymous: false,
@@ -201,14 +201,14 @@ export const api = {
   // Weight entries with smart defaults
   getEntries: (limit?: number) =>
     supabase
-      .from('entries')
+      .from('wp_entries')
       .select('*')
       .order('recorded_at', { ascending: false })
       .limit(limit || 100),
 
   createEntry: (entry: { weight: number; recorded_at?: string }) =>
     supabase
-      .from('entries')
+      .from('wp_entries')
       .insert({
         ...entry,
         recorded_at: entry.recorded_at || new Date().toISOString(),
@@ -217,24 +217,30 @@ export const api = {
       .single(),
 
   updateEntry: (id: string, weight: number) =>
-    supabase.from('entries').update({ weight }).eq('id', id).select().single(),
+    supabase
+      .from('wp_entries')
+      .update({ weight })
+      .eq('id', id)
+      .select()
+      .single(),
 
-  deleteEntry: (id: string) => supabase.from('entries').delete().eq('id', id),
+  deleteEntry: (id: string) =>
+    supabase.from('wp_entries').delete().eq('id', id),
 
   // Goal management with celebration focus
   getActiveGoal: () =>
-    supabase.from('goals').select('*').eq('status', 'active').maybeSingle(),
+    supabase.from('wp_goals').select('*').eq('status', 'active').maybeSingle(),
 
   getCompletedGoals: () =>
     supabase
-      .from('goals')
-      .select('*, entries(*)')
+      .from('wp_goals')
+      .select('*, wp_entries(*)')
       .eq('status', 'completed')
       .order('completed_at', { ascending: false }),
 
   setGoal: (goal: { target_weight: number; target_date?: string }) =>
     supabase
-      .from('goals')
+      .from('wp_goals')
       .insert({
         ...goal,
         start_weight: 0, // Will be set by the app logic
@@ -245,7 +251,7 @@ export const api = {
 
   completeGoal: (goalId: string, entryId: string) =>
     supabase
-      .from('goals')
+      .from('wp_goals')
       .update({
         status: 'completed',
         completed_at: new Date().toISOString(),
@@ -256,14 +262,14 @@ export const api = {
       .single(),
 
   clearGoal: (goalId: string) =>
-    supabase.from('goals').delete().eq('id', goalId),
+    supabase.from('wp_goals').delete().eq('id', goalId),
 
   // Profile
-  getProfile: () => supabase.from('profiles').select('*').single(),
+  getProfile: () => supabase.from('wp_profiles').select('*').single(),
 
   updateProfile: (
     updates: Partial<Pick<Profile, 'preferred_unit' | 'timezone'>>,
-  ) => supabase.from('profiles').update(updates).select().single(),
+  ) => supabase.from('wp_profiles').update(updates).select().single(),
 };
 ```
 
@@ -280,13 +286,13 @@ export const useEntries = () => {
     if (!user) return;
 
     const subscription = supabase
-      .channel('entries')
+      .channel('wp_entries')
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'entries',
+          table: 'wp_entries',
           filter: `user_id=eq.${user.id}`,
         },
         () => {
@@ -838,7 +844,7 @@ const roundedWeight = Math.round(weight * 10) / 10;
 
 // ❌ Missing business context
 useEffect(() => {
-  const subscription = supabase.channel('entries')...
+  const subscription = supabase.channel('wp_entries')...
 }, [user?.id]);
 
 // ✅ Enhanced - explains user experience and technical decisions
@@ -847,11 +853,11 @@ useEffect(() => {
   // on other devices. Critical for multi-device weight tracking consistency.
   // Filter by user_id prevents data leakage between anonymous sessions.
   const subscription = supabase
-    .channel('entries')
+    .channel('wp_entries')
     .on('postgres_changes', {
       event: '*',
       schema: 'public',
-      table: 'entries',
+      table: 'wp_entries',
       filter: `user_id=eq.${user.id}`, // Enforce user data isolation
     }, () => {
       // Invalidate queries to trigger fresh data fetch

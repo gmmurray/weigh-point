@@ -1,12 +1,12 @@
+import type { CreateEntryInput, Entry } from '../types';
 import { useActiveGoal, useCompleteGoal } from './useGoal';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import type { CreateEntryInput, Entry } from '../types';
 import { api } from '../lib/api';
+import { revalidateGoals } from '../lib/goalRevalidation';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './useAuth';
 import { useEffect } from 'react';
-import { revalidateGoals } from '../lib/goalRevalidation';
 
 interface UseEntriesOptions {
   limit?: number;
@@ -42,13 +42,13 @@ export const useEntries = (options?: UseEntriesOptions | number) => {
     if (!profile) return () => {};
 
     const subscription = supabase
-      .channel('entries')
+      .channel('wp_entries')
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'entries',
+          table: 'wp_entries',
           filter: `user_id=eq.${profile.id}`,
         },
         () => {
