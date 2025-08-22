@@ -1,0 +1,11 @@
+name = "weigh-point"
+compatibility_date = "2025-08-22"
+
+[assets]
+directory = "./dist"
+not_found_handling = "single-page-application"
+
+
+[vars]
+VITE_SUPABASE_URL = "https://iuapcbfbskswtqsarqbx.supabase.co"
+VITE_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1YXBjYmZic2tzd3Rxc2FycWJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyOTEyNjEsImV4cCI6MjA2ODg2NzI2MX0.4Y93HFIBfPlRmmwehJzLK4pnlohp1soUxcIscK_fl14"
